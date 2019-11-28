@@ -22,7 +22,7 @@
     "uglify-js": "3.6.0"
   },
   "scripts": {
-    "build": "standard lib/chessboard.js && node scripts/build.js",
+    "build": "node scripts/build.js",
     "standard": "standard --fix lib/*.js website/js/*.js",
     "website": "node scripts/website.js"
   }
