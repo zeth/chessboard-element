@@ -8,11 +8,6 @@ Orientation
 Use the <a href="docs.html#config:orientation"><code class="js plain">orientation</code></a> property to set board orientation.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board position="start" orientation="black" style="width: 400px"></chess-board>
 
 ===== JS
-var config = {
-  orientation: 'black',
-  position: 'start'
-}
-var board = Chessboard('myBoard', config)
