@@ -8,10 +8,6 @@ Start Position
 Set the <a href="docs.html#config:position"><code class="js plain">position</code></a> property to <code class="js string">'start'</code> to initialize the board to the start position.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board position="start" style="width: 400px"></chess-board>
 
 ===== JS
-var config = {
-  position: 'start'
-}
-var board = Chessboard('myBoard', config)

@@ -8,14 +8,13 @@ Position Object
 You can set the <a href="docs.html#config:position"><code class="js plain">position</code></a> property with a <a href="docs.html#position_object">Position Object</a>.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board style="width: 400px"></chess-board>
 
 ===== JS
-var config = {
-  position: {
-    d4: 'wP',
-    d6: 'bK',
-    e4: 'wK'
-  }
-};
-var board = Chessboard('myBoard', config)
+const board = document.querySelector('chess-board');
+const position = {
+  d6: 'bK',
+  d4: 'wP',
+  e4: 'wK'
+}
+board.position(position, false);
