@@ -9,7 +9,7 @@ Pass <code class="js string">'start'</code> as the second argument to initialize
 the board to the start position.
 
 ===== HTML
-<chess-board start style="width: 400px"></chess-board>
+<chess-board position="start" style="width: 400px"></chess-board>
 
 ===== JS
 
