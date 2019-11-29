@@ -8,10 +8,14 @@ Piece Theme Function
 <a href="docs.html#config:pieceTheme"><code class="js plain">pieceTheme</code></a> can be a function.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start">
+</chess-board>
 
 ===== JS
-function pieceTheme (piece) {
+const board = document.querySelector('chess-board');
+board.pieceTheme = (piece) => {
   // wikipedia theme for white pieces
   if (piece.search(/w/) !== -1) {
     return 'img/chesspieces/wikipedia/' + piece + '.png'
@@ -19,10 +23,4 @@ function pieceTheme (piece) {
 
   // alpha theme for black pieces
   return 'img/chesspieces/alpha/' + piece + '.png'
-}
-
-var config = {
-  pieceTheme: pieceTheme,
-  position: 'start'
-}
-var board = Chessboard('myBoard', config)
+};
