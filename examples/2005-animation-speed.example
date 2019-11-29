@@ -8,7 +8,13 @@ Animation Speed
 You can control animation speeds with the <a href="docs.html#config:moveSpeed"><code class="js plain">moveSpeed</code></a>, <a href="docs.html#config:snapbackSpeed"><code class="js plain">snapbackSpeed</code></a>, <a href="docs.html#config:snapSpeed"><code class="js plain">snapSpeed</code></a>, and <a href="docs.html#config:trashSpeed"><code class="js plain">trashSpeed</code></a> properties.
 
 ===== HTML
-<chess-board position="start" style="width: 400px"></chess-board>
+<chess-board
+    style="width: 400px"
+    position="start"
+    move-speed="slow"
+    snapback-speed="500"
+    snap-speed="100">
+</chess-board>
 
 <button id="ruyLopezBtn">Ruy Lopez</button>
 <button id="startBtn">Start Position</button>
