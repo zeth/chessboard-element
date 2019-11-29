@@ -55,7 +55,7 @@ const examplesGroups = [
   },
   {
     name: 'Methods',
-    examples: [3000, 3001, 3002, 3003, 3004, 3005, 3006, 3007]
+    examples: [3000, 3001, 3002, 3003, 3004, 3005, 3007]
   },
   {
     name: 'Events',
