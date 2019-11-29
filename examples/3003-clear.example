@@ -8,18 +8,27 @@ Clear Board
 Use the <a href="docs.html#methods:clear"><code class="js plain">clear</code></a> method to remove all the pieces from the board.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces>
+</chess-board>
+
 <button id="clearBoardBtn">Clear Board</button>
 <button id="startPositionBtn">Start Position</button>
 <button id="clearBoardInstantBtn">Clear Board Instant</button>
 
 ===== JS
-var board = Chessboard('myBoard', 'start')
+const board = document.querySelector('chess-board');
 
-$('#clearBoardBtn').on('click', board.clear)
+document.querySelector('#clearBoardBtn').addEventListener('click', () => {
+  board.clear();
+});
 
-$('#startPositionBtn').on('click', board.start)
+document.querySelector('#startPositionBtn').addEventListener('click', () => {
+  board.start();
+});
 
-$('#clearBoardInstantBtn').on('click', function () {
-  board.clear(false)
-})
+document.querySelector('#clearBoardInstantBtn').addEventListener('click', () => {
+  board.clear(false);
+});
