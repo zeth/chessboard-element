@@ -1,3 +1,5 @@
+`@justinfagnani/chessboardjs` is an in-progress port of chessboard.js to web components.
+
 # chessboard.js
 
 chessboard.js is a JavaScript chessboard component. It depends on [jQuery].
