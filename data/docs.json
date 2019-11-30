@@ -71,18 +71,6 @@
 },
 "------------------------------------------------------------------------------",
 {
-  "name":"onMoveEnd",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires at the end of animations when the board position changes.",
-    "The first argument to the function is the old position, the second argument is the new position."
-  ],
-  "examples":[4012]
-},
-"------------------------------------------------------------------------------",
-{
   "name":"onSnapEnd",
   "type":"Function",
   "req":false,
@@ -439,6 +427,20 @@
       "</ul>"
     ],
     "examples":[4011]
+  },
+  "------------------------------------------------------------------------------",
+  {
+    "name":"move-end",
+    "type":"Event",
+    "desc":[
+      "Fires at the end of animations when the board position changes.",
+      "The event's <code class='js'>detail</code> object has the following properties:",
+      "<ul>",
+      "  <li><code class='js'>oldPosition</code>: the old position</li>",
+      "  <li><code class='js'>newPosition</code>: the new position</li>",
+      "</ul>"
+    ],
+    "examples":[4012]
   }
 ],
 
