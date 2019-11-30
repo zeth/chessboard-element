@@ -2,26 +2,27 @@
 4011
 
 ===== Name
-onSnapbackEnd
+snapback-end
 
 ===== Description
-The <a href="docs.html#config:onSnapbackEnd"><code class="js plain">onSnapbackEnd</code></a> event fires after a piece has snapped back to it's original square.
+The <a href="docs.html#event:snapback-end"><code class="js plain">snapback-end</code></a> event fires after a piece has snapped back to it's original square.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces>
+</chess-board>
 
 ===== JS
-function onSnapbackEnd (piece, square, position, orientation) {
+const board = document.querySelector('chess-board');
+
+board.addEventListener('snapback-end', (e) => {
+  const {piece, square, position, orientation} = e.detail;
+
   console.log('Piece: ' + piece)
   console.log('Square: ' + square)
   console.log('Position: ' + Chessboard.objToFen(position))
   console.log('Orientation: ' + orientation)
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-}
-
-var config = {
-  draggable: true,
-  position: 'start',
-  onSnapbackEnd: onSnapbackEnd
-}
-var board = Chessboard('myBoard', config)
+});

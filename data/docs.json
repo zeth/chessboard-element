@@ -83,18 +83,6 @@
 },
 "------------------------------------------------------------------------------",
 {
-  "name":"onSnapbackEnd",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires when the \"snapback\" animation is complete when pieces are dropped off the board.",
-    "The first argument to the function is the dragged piece, the second argument is the square the piece returned to, the third argument is the current position, and the fourth argument is the current orientation."
-  ],
-  "examples":[4011]
-},
-"------------------------------------------------------------------------------",
-{
   "name":"onSnapEnd",
   "type":"Function",
   "req":false,
@@ -386,7 +374,7 @@
     "type":"Event",
     "desc":[
       "Fires when a piece is picked up.",
-      "The event's <code class='js'>detail</code> object the following properties:",
+      "The event's <code class='js'>detail</code> object has the following properties:",
       "<ul>",
       "  <li><code class='js'>source</code>: the source of the piece</li>",
       "  <li><code class='js'>piece</code>: the piece</li>",
@@ -403,7 +391,7 @@
     "type":"Event",
     "desc":[
       "Fires when a dragged piece changes location.",
-      "The event's <code class='js'>detail</code> object the following properties:",
+      "The event's <code class='js'>detail</code> object has the following properties:",
       "<ul>",
       "  <li><code class='js'>newLocation</code>: the new location of the piece</li>",
       "  <li><code class='js'>oldLocation</code>: the old location of the piece</li>",
@@ -421,7 +409,7 @@
     "type":"Event",
     "desc":[
       "Fires when a piece is dropped.",
-      "The event's <code class='js'>detail</code> object the following properties:",
+      "The event's <code class='js'>detail</code> object has the following properties:",
       "<ul>",
       "  <li><code class='js'>source</code>: the source of the dragged piece</li>",
       "  <li><code class='js'>target</code>: the target of the dragged piece</li>",
@@ -435,6 +423,22 @@
       "</ul>"
     ],
     "examples":[4004,4005,4006]
+  },
+  "------------------------------------------------------------------------------",
+  {
+    "name":"snapback-end",
+    "type":"Event",
+    "desc":[
+      "Fires when the \"snapback\" animation is complete when pieces are dropped off the board.",
+      "The event's <code class='js'>detail</code> object has the following properties:",
+      "<ul>",
+      "  <li><code class='js'>piece</code>: the dragged piece</li>",
+      "  <li><code class='js'>square</code>: the square the piece returned to</li>",
+      "  <li><code class='js'>position</code>: the current position</li>",
+      "  <li><code class='js'>orientation</code>: the current orientation.</li>",
+      "</ul>"
+    ],
+    "examples":[4011]
   }
 ],
 
