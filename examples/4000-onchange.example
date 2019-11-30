@@ -2,34 +2,37 @@
 4000
 
 ===== Name
-onChange
+change
 
 ===== Description
-The <a href="docs.html#config:onChange"><code class="js plain">onChange</code></a> event fires when the board position changes.
+The <a href="docs.html#event:change"><code class="js plain">change</code></a> event fires when the board position changes.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces>
+</chess-board>
+
 <button id="ruyLopezBtn">Ruy Lopez</button>
 <button id="startPositionBtn">Start Position</button>
 
 ===== JS
-function onChange (oldPos, newPos) {
-  console.log('Position changed:')
-  console.log('Old position: ' + Chessboard.objToFen(oldPos))
-  console.log('New position: ' + Chessboard.objToFen(newPos))
-  console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-}
+const board = document.querySelector('chess-board');
 
-var config = {
-  draggable: true,
-  position: 'start',
-  onChange: onChange
-}
-var board = Chessboard('myBoard', config)
+board.addEventListener('change', (e) => {
+  const {value, oldValue} = e.detail;
+  console.log('Position changed:');
+  console.log('Old position: ' + Chessboard.objToFen(oldValue));
+  console.log('New position: ' + Chessboard.objToFen(value));
+  console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
+});
 
-$('#ruyLopezBtn').on('click', function () {
-  var ruyLopez = 'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R'
-  board.position(ruyLopez)
-})
+document.querySelector('#ruyLopezBtn').addEventListener('click', () => {
+  const ruyLopez = 'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R';
+  board.position(ruyLopez);
+});
 
-$('#startPositionBtn').on('click', board.start)
+document.querySelector('#startPositionBtn').addEventListener('click', () => {
+  board.start();
+});

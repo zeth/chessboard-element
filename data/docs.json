@@ -45,20 +45,6 @@
 },
 "------------------------------------------------------------------------------",
 {
-  "name":"onChange",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires when the board position changes.",
-    "The first argument to the function is the old position, the second argument is the new position.",
-    "<span style='color: red; text-transform: uppercase; font-weight: bold;'>Warning:</span> do <strong>not</strong> call any position-changing methods in your <code class='js plain'>onChange</code> function or you will cause an infinite loop.",
-    "Position-changing methods are: <a href='docs.html#methods:clear'><code class='js plain'>clear()</code></a>, <a href='docs.html#methods:move'><code class='js plain'>move()</code></a>, <a href='docs.html#methods:position'><code class='js plain'>position()</code></a>, and <a href='docs.html#methods:start'><code class='js plain'>start()</code></a>."
-  ],
-  "examples":[4000]
-},
-"------------------------------------------------------------------------------",
-{
   "name":"onDragStart",
   "type":"Function",
   "req":false,
@@ -409,6 +395,29 @@
 ],
 
 
+
+
+
+
+
+
+
+"events": [
+  "------------------------------------------------------------------------------",
+  {
+    "name":"change",
+    "type":"Event",
+    "req":false,
+    "default":false,
+    "desc":[
+      "Fires when the board position changes.",
+      "The first argument to the function is the old position, the second argument is the new position.",
+      "<span style='color: red; text-transform: uppercase; font-weight: bold;'>Warning:</span> do <strong>not</strong> call any position-changing methods in your <code class='js plain'>onChange</code> function or you will cause an infinite loop.",
+      "Position-changing methods are: <a href='docs.html#methods:clear'><code class='js plain'>clear()</code></a>, <a href='docs.html#methods:move'><code class='js plain'>move()</code></a>, <a href='docs.html#methods:position'><code class='js plain'>position()</code></a>, and <a href='docs.html#methods:start'><code class='js plain'>start()</code></a>."
+    ],
+    "examples":[4000]
+  }
+],
 
 
 

@@ -121,6 +121,11 @@ const methodTableRowsHTML = docs.methods.reduce(function (html, itm) {
   return html + buildMethodRowHTML(itm)
 }, '')
 
+const eventTableRowsHTML = docs.events.reduce(function (html, itm) {
+  if (isString(itm)) return html
+  return html + buildEventRowHTML('event', itm);
+}, '')
+
 const errorRowsHTML = docs.errors.reduce(function (html, itm) {
   if (isString(itm)) return html
   return html + buildErrorRowHTML(itm)
@@ -153,7 +158,8 @@ function writeDocsPage () {
     footer: footerTemplate,
     head: headHTML,
     header: headerHTML,
-    methodTableRows: methodTableRowsHTML
+    methodTableRows: methodTableRowsHTML,
+    eventTableRows: eventTableRowsHTML,
   })
   fs.writeFileSync('website/docs.html', html, encoding)
 }
@@ -252,6 +258,26 @@ function buildConfigDocsTableRowHTML (propType, prop) {
 
   // default
   html += '<td class="center"><p>' + buildDefaultHTML(prop.default) + '</p></td>'
+
+  // description
+  html += '<td>' + buildDescriptionHTML(prop.desc) + '</td>'
+
+  // examples
+  html += '<td>' + buildExamplesCellHTML(prop.examples) + '</td>'
+
+  html += '</tr>'
+
+  return html
+}
+
+function buildEventRowHTML (propType, prop) {
+  let html = ''
+
+  // table row
+  html += '<tr id="' + propType + ':' + prop.name + '">'
+
+  // property and type
+  html += '<td>' + buildPropertyAndTypeHTML(propType, prop.name, prop.type) + '</td>'
 
   // description
   html += '<td>' + buildDescriptionHTML(prop.desc) + '</td>'
