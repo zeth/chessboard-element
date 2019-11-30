@@ -2,29 +2,29 @@
 4004
 
 ===== Name
-onDrop
+drop
 
 ===== Description
-The <a href="docs.html#config:onDrop"><code class="js plain">onDrop</code></a> event fires every time a piece is dropped.
+The <a href="docs.html#event:drop"><code class="js plain">drop</code></a> event fires every time a piece is dropped.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces
+    spare-pieces>
+</chess-board>
 
 ===== JS
-function onDrop (source, target, piece, newPos, oldPos, orientation) {
+const board = document.querySelector('chess-board');
+
+board.addEventListener('drop', (e) => {
+  const {source, target, piece, newPosition, oldPosition, orientation} = e.detail;
   console.log('Source: ' + source)
   console.log('Target: ' + target)
   console.log('Piece: ' + piece)
-  console.log('New position: ' + Chessboard.objToFen(newPos))
-  console.log('Old position: ' + Chessboard.objToFen(oldPos))
+  console.log('New position: ' + Chessboard.objToFen(newPosition))
+  console.log('Old position: ' + Chessboard.objToFen(oldPosition))
   console.log('Orientation: ' + orientation)
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-}
-
-var config = {
-  draggable: true,
-  position: 'start',
-  onDrop: onDrop,
-  sparePieces: true
-}
-var board = Chessboard('myBoard', config)
+});

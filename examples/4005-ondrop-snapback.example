@@ -2,25 +2,25 @@
 4005
 
 ===== Name
-onDrop Snapback
+drop Snapback
 
 ===== Description
-If <code class="js string">'snapback'</code> is returned from the <a href="docs.html#config:onDrop"><code class="js plain">onDrop</code></a> function, the dragged piece will return to it's source square.
+If <code class="js string">'snapback'</code> is passed to the <a href="docs.html#event:drop"><code class="js plain">drop</code></a> event's <code class="js plain">setAction()</code> function, the dragged piece will return to it's source square.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces>
+</chess-board>
 
 ===== JS
-// snapback black pieces when they are dropped
-function onDrop (source, target, piece, newPos, oldPos, orientation) {
-  if (piece.search(/b/) !== -1) {
-    return 'snapback'
-  }
-}
+const board = document.querySelector('chess-board');
 
-var config = {
-  draggable: true,
-  position: 'start',
-  onDrop: onDrop
-}
-var board = Chessboard('myBoard', config)
+// snapback black pieces when they are dropped
+board.addEventListener('drop', (e) => {
+  const {piece, setAction} = e.detail;
+  if (piece.search(/b/) !== -1) {
+    setAction('snapback');
+  }
+});
