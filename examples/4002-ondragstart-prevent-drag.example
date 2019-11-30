@@ -2,30 +2,31 @@
 4002
 
 ===== Name
-onDragStart Prevent Drag
+drag-start Prevent Drag
 
 ===== Description
-Prevent the drag action by returning <code class="js keyword">false</code> from the <a href="docs.html#config:onDragStart"><code class="js plain">onDragStart</code></a> function.
+Prevent the drag action by calling <code class="js keyword">preventDefault()</code> from the <a href="docs.html#event:drag-start"><code class="js plain">drag-start</code></a> listener.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces>
+</chess-board>
+
 <button id="flipOrientationBtn">Flip Orientation</button>
 
 ===== JS
-// only allow pieces to be dragged when the board is oriented
-// in their direction
-function onDragStart (source, piece, position, orientation) {
+const board = document.querySelector('chess-board');
+
+board.addEventListener('drag-start', (e) => {
+  const {piece, orientation} = e.detail;
   if ((orientation === 'white' && piece.search(/^w/) === -1) ||
       (orientation === 'black' && piece.search(/^b/) === -1)) {
-    return false
+    e.preventDefault();
   }
-}
+});
 
-var config = {
-  draggable: true,
-  position: 'start',
-  onDragStart: onDragStart
-}
-var board = Chessboard('myBoard', config)
-
-$('#flipOrientationBtn').on('click', board.flip)
+document.querySelector('#flipOrientationBtn').addEventListener('click', () => {
+  board.flip();
+});

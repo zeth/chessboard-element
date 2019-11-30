@@ -45,19 +45,6 @@
 },
 "------------------------------------------------------------------------------",
 {
-  "name":"onDragStart",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires when a piece is picked up.",
-    "The first argument to the function is the source of the piece, the second argument is the piece, the third argument is the current position on the board, and the fourth argument is the current orientation.",
-    "The drag action is prevented if the function returns <code class='js keyword'>false</code>."
-  ],
-  "examples":[4001,4002]
-},
-"------------------------------------------------------------------------------",
-{
   "name":"onDragMove",
   "type":"Function",
   "req":false,
@@ -407,15 +394,34 @@
   {
     "name":"change",
     "type":"Event",
-    "req":false,
-    "default":false,
     "desc":[
       "Fires when the board position changes.",
-      "The first argument to the function is the old position, the second argument is the new position.",
+      "The event's <code class='js'>detail</code> property has two properties:",
+      "<ul>",
+      "  <li><code class='js'>value</code>: the new position",
+      "  <li><code class='js'>oldValue</code>: the old position",
+      "</ul>",
       "<span style='color: red; text-transform: uppercase; font-weight: bold;'>Warning:</span> do <strong>not</strong> call any position-changing methods in your <code class='js plain'>onChange</code> function or you will cause an infinite loop.",
       "Position-changing methods are: <a href='docs.html#methods:clear'><code class='js plain'>clear()</code></a>, <a href='docs.html#methods:move'><code class='js plain'>move()</code></a>, <a href='docs.html#methods:position'><code class='js plain'>position()</code></a>, and <a href='docs.html#methods:start'><code class='js plain'>start()</code></a>."
     ],
     "examples":[4000]
+  },
+  "------------------------------------------------------------------------------",
+  {
+    "name":"drag-start",
+    "type":"Event",
+    "desc":[
+      "Fires when a piece is picked up.",
+      "The event's <code class='js'>detail</code> property has four properties:",
+      "<ul>",
+      "  <li><code class='js'>source</code>: the source of the piece</li>",
+      "  <li><code class='js'>piece</code>: the piece</li>",
+      "  <li><code class='js'>position</code>: the current position on the board</li>",
+      "  <li><code class='js'>orientation</code>: the current orientation.</li>",
+      "</ul>",
+      "The drag action is prevented if the listener calls <code class='js'>event.preventDefault()</code>."
+    ],
+    "examples":[4001,4002]
   }
 ],
 
