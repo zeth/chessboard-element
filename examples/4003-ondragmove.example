@@ -2,17 +2,25 @@
 4003
 
 ===== Name
-onDragMove
+drag-move
 
 ===== Description
-The <a href="docs.html#config:onDragMove"><code class="js plain">onDragMove</code></a> event fires every time a piece changes location.
+The <a href="docs.html#event:drag-move"><code class="js plain">drag-move</code></a> event fires every time a piece changes location.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces
+    spare-pieces>
+</chess-board>
 
 ===== JS
-function onDragMove (newLocation, oldLocation, source,
-                     piece, position, orientation) {
+const board = document.querySelector('chess-board');
+
+board.addEventListener('drag-move', (e) => {
+  const {newLocation, oldLocation, source,
+                     piece, position, orientation} = e.detail;
   console.log('New location: ' + newLocation)
   console.log('Old location: ' + oldLocation)
   console.log('Source: ' + source)
@@ -20,12 +28,4 @@ function onDragMove (newLocation, oldLocation, source,
   console.log('Position: ' + Chessboard.objToFen(position))
   console.log('Orientation: ' + orientation)
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
-}
-
-var config = {
-  draggable: true,
-  position: 'start',
-  onDragMove: onDragMove,
-  sparePieces: true
-}
-var board = Chessboard('myBoard', config)
+});

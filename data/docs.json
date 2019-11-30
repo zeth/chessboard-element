@@ -43,18 +43,7 @@
   ],
   "examples":[2000,2044,2063]
 },
-"------------------------------------------------------------------------------",
-{
-  "name":"onDragMove",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires when a dragged piece changes location.",
-    "The first argument to the function is the new location of the piece, the second argument is the old location of the piece, the third argument is the source of the dragged piece, the fourth argument is the piece, the fifth argument is the current position on the board, and the sixth argument is the current orientation."
-  ],
-  "examples":[4003]
-},
+
 "------------------------------------------------------------------------------",
 {
   "name":"onDrop",
@@ -422,6 +411,24 @@
       "The drag action is prevented if the listener calls <code class='js'>event.preventDefault()</code>."
     ],
     "examples":[4001,4002]
+  },
+  "------------------------------------------------------------------------------",
+  {
+    "name":"drag-move",
+    "type":"Event",
+    "desc":[
+      "Fires when a dragged piece changes location.",
+      "The event's <code class='js'>detail</code> property has four properties:",
+      "<ul>",
+      "  <li><code class='js'>newLocation</code>: the new location of the piece</li>",
+      "  <li><code class='js'>oldLocation</code>: the old location of the piece</li>",
+      "  <li><code class='js'>source</code>: the source of the dragged piece</li>",
+      "  <li><code class='js'>piece</code>: the piece</li>",
+      "  <li><code class='js'>position</code>: the current position on the board</li>",
+      "  <li><code class='js'>orientation</code>: the current orientation.</li>",
+      "</ul>"
+    ],
+    "examples":[4003]
   }
 ],
 
