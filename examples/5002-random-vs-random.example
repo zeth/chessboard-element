@@ -8,28 +8,28 @@ Random vs Random
 Who will win in this riveting game of <code class="js plain">Math.random()</code> vs <code class="js plain">Math.random()</code>?
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board style="width: 400px" position="start"></chess-board>
 
 ===== JS
 // NOTE: this example uses the chess.js library:
 // https://github.com/jhlywa/chess.js
 
-var board = null
-var game = new Chess()
+const board = document.querySelector('chess-board');
+var game = new Chess();
 
-function makeRandomMove () {
-  var possibleMoves = game.moves()
+function makeRandomMove() {
+  const possibleMoves = game.moves();
 
   // exit if the game is over
-  if (game.game_over()) return
+  if (game.game_over()) {
+    return;
+  }
 
-  var randomIdx = Math.floor(Math.random() * possibleMoves.length)
-  game.move(possibleMoves[randomIdx])
-  board.position(game.fen())
+  const randomIdx = Math.floor(Math.random() * possibleMoves.length);
+  game.move(possibleMoves[randomIdx]);
+  board.position(game.fen());
 
-  window.setTimeout(makeRandomMove, 500)
+  window.setTimeout(makeRandomMove, 500);
 }
 
-board = Chessboard('myBoard', 'start')
-
-window.setTimeout(makeRandomMove, 500)
+window.setTimeout(makeRandomMove, 500);
