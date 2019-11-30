@@ -45,19 +45,6 @@
 },
 "------------------------------------------------------------------------------",
 {
-  "name":"onMouseoutSquare",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires when the mouse leaves a square.",
-    "The first argument to the function is the square that was left, the second argument is the piece on that square (or <code class='js keyword'>false</code> if there is no piece), the third argument is the current position of the board, and the fourth argument is the current orientation.",
-    "Note that <code class='js plain'>onMouseoutSquare</code> will <strong>not</strong> fire during piece drag and drop. Use <code class='js plain'><a href='docs.html#event:drag-move'>drag-move</a></code>."
-  ],
-  "examples":[5003]
-},
-"------------------------------------------------------------------------------",
-{
   "name":"onMouseoverSquare",
   "type":"Function",
   "req":false,
@@ -68,18 +55,6 @@
     "Note that <code class='js plain'>onMouseoverSquare</code> will <strong>not</strong> fire during piece drag and drop. Use <code class='js plain'><a href='docs.html#event:drag-move'>drag-move</a></code>."
   ],
   "examples":[5003]
-},
-"------------------------------------------------------------------------------",
-{
-  "name":"onSnapEnd",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires when the piece \"snap\" animation is complete.",
-    "The first argument to the function is the source of the dragged piece, the second argument is the target of the dragged piece, and the third argument is the piece."
-  ],
-  "examples":[5000]
 },
 "------------------------------------------------------------------------------",
 {
@@ -414,6 +389,21 @@
   },
   "------------------------------------------------------------------------------",
   {
+    "name":"snap-end",
+    "type":"Event",
+    "desc":[
+      "Fires when the piece \"snap\" animation is complete.",
+      "The event's <code class='js'>detail</code> object has the following properties:",
+      "<ul>",
+      "  <li><code class='js'>source</code>: the source of the dragged piece</li>",
+      "  <li><code class='js'>square</code>: the target of the dragged piece</li>",
+      "  <li><code class='js'>piece</code>: the dragged piece</li>",
+      "</ul>"
+    ],
+    "examples":[5000]
+  },
+  "------------------------------------------------------------------------------",
+  {
     "name":"snapback-end",
     "type":"Event",
     "desc":[
@@ -441,6 +431,23 @@
       "</ul>"
     ],
     "examples":[4012]
+  },
+  "------------------------------------------------------------------------------",
+  {
+    "name":"mouseout-square",
+    "type":"Event",
+    "desc":[
+      "Fires when the mouse leaves a square.",
+      "The event's <code class='js'>detail</code> object has the following properties:",
+      "<ul>",
+      "  <li><code class='js'>square</code>: the square that was left</li>",
+      "  <li><code class='js'>piece</code>: the piece on that square (or <code class='js keyword'>false</code> if there is no piece)</li>",
+      "  <li><code class='js'>position</code>: the current position</li>",
+      "  <li><code class='js'>orientation</code>: the current orientation.</li>",
+      "</ul>",
+      "Note that <code class='js plain'>mouseout-square</code> will <strong>not</strong> fire during piece drag and drop. Use <code class='js plain'><a href='docs.html#event:drag-move'>drag-move</a></code>."
+    ],
+    "examples":[5003]
   }
 ],
 
