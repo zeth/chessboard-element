@@ -8,91 +8,102 @@ Highlight Legal Moves
 Use the <code class="js plain"><a href="docs.html#config:onMouseoverSquare">onMouseoverSquare</a></code> and <code class="js plain"><a href="docs.html#config:onMouseoutSquare">onMouseoutSquare</a></code> events to highlight legal squares.
 
 ===== HTML
-<div id="myBoard" style="width: 400px"></div>
+<chess-board
+    style="width: 400px"
+    position="start"
+    draggable-pieces>
+</chess-board>
 
 ===== JS
 // NOTE: this example uses the chess.js library:
 // https://github.com/jhlywa/chess.js
 
-var board = null
-var game = new Chess()
-var whiteSquareGrey = '#a9a9a9'
-var blackSquareGrey = '#696969'
+const board = document.querySelector('chess-board');
+const game = new Chess();
 
-function removeGreySquares () {
-  $('#myBoard .square-55d63').css('background', '')
+const highlightStyles = document.createElement('style');
+document.head.append(highlightStyles);
+const whiteSquareGrey = '#a9a9a9';
+const blackSquareGrey = '#696969';
+
+function removeGreySquares() {
+  highlightStyles.textContent = '';
 }
 
-function greySquare (square) {
-  var $square = $('#myBoard .square-' + square)
-
-  var background = whiteSquareGrey
-  if ($square.hasClass('black-3c85d')) {
-    background = blackSquareGrey
-  }
-
-  $square.css('background', background)
+function greySquare(square) {
+  const highlightColor = (square.charCodeAt(0) % 2) ^ (square.charCodeAt(1) % 2)
+      ? whiteSquareGrey
+      : blackSquareGrey;
+  
+  highlightStyles.textContent += `
+    chess-board::part(${square}) {
+      background-color: ${highlightColor};
+    }
+  `;
 }
 
-function onDragStart (source, piece) {
+board.addEventListener('drag-start', (e) => {
+  const {source, piece} = e.detail;
+
   // do not pick up pieces if the game is over
-  if (game.game_over()) return false
+  if (game.game_over()) {
+    e.preventDefault();
+    return;
+  }
 
   // or if it's not that side's turn
   if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
       (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
-    return false
+    e.preventDefault();
+    return;
   }
-}
+});
 
-function onDrop (source, target) {
-  removeGreySquares()
+board.addEventListener('drop', (e) => {
+  const {source, target, setAction} = e.detail;
+
+  removeGreySquares();
 
   // see if the move is legal
-  var move = game.move({
+  const move = game.move({
     from: source,
     to: target,
     promotion: 'q' // NOTE: always promote to a queen for example simplicity
-  })
+  });
 
   // illegal move
-  if (move === null) return 'snapback'
-}
+  if (move === null) {
+    setAction('snapback');
+  }
+});
 
-function onMouseoverSquare (square, piece) {
+board.addEventListener('mouseover-square', (e) => {
+  const {square, piece} = e.detail;
+
   // get list of possible moves for this square
-  var moves = game.moves({
+  const moves = game.moves({
     square: square,
     verbose: true
-  })
+  });
 
   // exit if there are no moves available for this square
-  if (moves.length === 0) return
+  if (moves.length === 0) {
+    return;
+  }
 
   // highlight the square they moused over
-  greySquare(square)
+  greySquare(square);
 
   // highlight the possible squares for this piece
-  for (var i = 0; i < moves.length; i++) {
-    greySquare(moves[i].to)
+  for (const move of moves) {
+    greySquare(move.to);
   }
-}
+});
 
-function onMouseoutSquare (square, piece) {
-  removeGreySquares()
-}
+board.addEventListener('mouseout-square', (e) => {
+  removeGreySquares();
+});
 
-function onSnapEnd () {
+board.addEventListener('snap-end', (e) => {
   board.position(game.fen())
-}
-
-var config = {
-  draggable: true,
-  position: 'start',
-  onDragStart: onDragStart,
-  onDrop: onDrop,
-  onMouseoutSquare: onMouseoutSquare,
-  onMouseoverSquare: onMouseoverSquare,
-  onSnapEnd: onSnapEnd
-}
-board = Chessboard('myBoard', config)
+});
