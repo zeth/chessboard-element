@@ -12,7 +12,7 @@ Set <a href="docs.html#config:dropOffBoard"><code class="js plain">dropOffBoard<
     style="width: 400px"
     draggable-pieces
     drop-off-board="trash"
-position="start">
+    position="start">
 </chess-board>
 
 ===== JS
