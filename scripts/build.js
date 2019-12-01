@@ -12,7 +12,7 @@ const encoding = {encoding: 'utf8'}
 const package = JSON.parse(fs.readFileSync('package.json', encoding))
 const version = package.version
 const year = new Date().getFullYear()
-const cssSrc = fs.readFileSync('lib/chessboard.css', encoding)
+const cssSrc = fs.readFileSync('lib/chessboard-styles.js', encoding)
                  .replace('@VERSION', version)
 const jsSrc = fs.readFileSync('lib/chessboard.js', encoding)
                 .replace('@VERSION', version)
@@ -20,13 +20,13 @@ const jsSrc = fs.readFileSync('lib/chessboard.js', encoding)
 
 // TODO: need to remove the RUN_ASSERTS calls from the non-minified file
 
-const minifiedCSS = csso.minify(cssSrc).css
+// const minifiedCSS = csso.minify(cssSrc).css
 // const uglifyResult = uglify.minify(jsSrc)
 // const minifiedJS = uglifyResult.code
 
 // quick sanity checks
 // console.assert(!uglifyResult.error, 'error minifying JS!')
-console.assert(typeof minifiedCSS === 'string' && minifiedCSS !== '', 'error minifying CSS!')
+// console.assert(typeof minifiedCSS === 'string' && minifiedCSS !== '', 'error minifying CSS!')
 
 // add license to the top of minified files
 // const minifiedJSWithBanner = banner() + minifiedJS

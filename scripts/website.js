@@ -32,7 +32,7 @@ const headerTemplate = fs.readFileSync('templates/_header.mustache', encoding)
 const footerTemplate = fs.readFileSync('templates/_footer.mustache', encoding)
 
 const latestChessboardJS = fs.readFileSync('lib/chessboard.js', encoding)
-const latestChessboardCSS = fs.readFileSync('lib/chessboard.css', encoding)
+const latestChessboardCSS = fs.readFileSync('lib/chessboard-styles.js', encoding)
 
 // grab the examples
 const examplesArr = kidif('examples/*.example')
@@ -81,7 +81,7 @@ $('#clearBtn').on('click', board2.clear)`.trim()
 
 function writeSrcFiles () {
   fs.writeFileSync('website/js/chessboard.js', latestChessboardJS, encoding)
-  fs.writeFileSync('website/css/chessboard.css', latestChessboardCSS, encoding)
+  fs.writeFileSync('website/js/chessboard-styles.js', latestChessboardCSS, encoding)
 }
 
 function writeHomepage () {
