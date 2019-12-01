@@ -1,8 +1,8 @@
-`@justinfagnani/chessboardjs` is an in-progress port of chessboard.js to web components.
+`@justinfagnani/chessboardjs` is an in-progress port of chessboard.js to JS modules, ES2017, and web components.
 
 # chessboard.js
 
-chessboard.js is a JavaScript chessboard component. It depends on [jQuery].
+chessboard.js is a JavaScript chessboard web component.
 
 Please see [chessboardjs.com] for documentation and examples.
 
@@ -78,7 +78,6 @@ npm run website
 
 [MIT License](LICENSE.md)
 
-[jQuery]:https://jquery.com/
 [chessboardjs.com]:http://chessboardjs.com
 [chess.js]:https://github.com/jhlywa/chess.js
 [Example 5000]:http://chessboardjs.com/examples#5000
