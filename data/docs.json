@@ -45,19 +45,6 @@
 },
 "------------------------------------------------------------------------------",
 {
-  "name":"onMouseoverSquare",
-  "type":"Function",
-  "req":false,
-  "default":false,
-  "desc":[
-    "Fires when the mouse enters a square.",
-    "The first argument to the function is the square that was entered, the second argument is the piece on that square (or <code class='js keyword'>false</code> if there is no piece), the third argument is the current position of the board, and the fourth argument is the current orientation.",
-    "Note that <code class='js plain'>onMouseoverSquare</code> will <strong>not</strong> fire during piece drag and drop. Use <code class='js plain'><a href='docs.html#event:drag-move'>drag-move</a></code>."
-  ],
-  "examples":[5003]
-},
-"------------------------------------------------------------------------------",
-{
   "name":"orientation",
   "type":[
     "<code class='js string'>'white'</code>",
@@ -431,6 +418,23 @@
       "</ul>"
     ],
     "examples":[4012]
+  },
+  "------------------------------------------------------------------------------",
+  {
+    "name":"mouseover-square",
+    "type":"Event",
+    "desc":[
+      "Fires when the mouse enters a square.",
+      "The event's <code class='js'>detail</code> object has the following properties:",
+      "<ul>",
+      "  <li><code class='js'>square</code>: the square that was entered</li>",
+      "  <li><code class='js'>piece</code>: the piece on that square (or <code class='js keyword'>false</code> if there is no piece)</li>",
+      "  <li><code class='js'>position</code>: the current position</li>",
+      "  <li><code class='js'>orientation</code>: the current orientation.</li>",
+      "</ul>",
+      "Note that <code class='js plain'>mouseover-square</code> will <strong>not</strong> fire during piece drag and drop. Use <code class='js plain'><a href='docs.html#event:drag-move'>drag-move</a></code>."
+    ],
+    "examples":[5003]
   },
   "------------------------------------------------------------------------------",
   {
