@@ -1,16 +1,16 @@
 /*! chessboard.js v@VERSION | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
 
 export const styles = `
-  .clearfix-7da63 {
+  .clearfix {
     clear: both;
   }
 
-  .board-b72b1 {
+  .board {
     border: 2px solid #404040;
     box-sizing: content-box;
   }
 
-  .square-55d63 {
+  .square {
     float: left;
     position: relative;
 
@@ -23,34 +23,34 @@ export const styles = `
     user-select: none;
   }
 
-  .white-1e1d7 {
+  .white {
     background-color: #f0d9b5;
     color: #b58863;
   }
 
-  .black-3c85d {
+  .black {
     background-color: #b58863;
     color: #f0d9b5;
   }
 
-  .highlight1-32417,
-  .highlight2-9c5d2 {
+  .highlight1,
+  .highlight2 {
     box-shadow: inset 0 0 3px 3px yellow;
   }
 
-  .notation-322f9 {
+  .notation {
     cursor: default;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 14px;
     position: absolute;
   }
 
-  .alpha-d2270 {
+  .alpha {
     bottom: 1px;
     right: 3px;
   }
 
-  .numeric-fc462 {
+  .numeric {
     top: 2px;
     left: 2px;
   }
