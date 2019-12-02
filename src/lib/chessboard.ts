@@ -5,17 +5,36 @@
 // Released under the MIT license
 // https://github.com/oakmac/chessboardjs/blob/master/LICENSE.md
 
+import {
+  throttle,
+  uuid,
+  deepCopy,
+  interpolateTemplate,
+  isString,
+  isFunction,
+  isInteger,
+} from './utils.js';
 import {styles} from './chessboard-styles.js';
+import {
+  fenToObj,
+  objToFen,
+  findClosestPiece,
+  calculatePositionFromMoves,
+  validMove,
+  validSquare,
+  validFen,
+  validPositionObject,
+  PositionObject,
+  Piece,
+  START_POSITION,
+  COLUMNS,
+} from './chess-utils.js';
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
 
-const COLUMNS = 'abcdefgh'.split('');
 const DEFAULT_DRAG_THROTTLE_RATE = 20;
-const RUN_ASSERTS = true;
-const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
-const START_POSITION = fenToObj(START_FEN);
 
 // default animation speeds
 const DEFAULT_APPEAR_SPEED = 200;
@@ -43,221 +62,69 @@ const CSS = {
 };
 
 // ---------------------------------------------------------------------------
-// Misc Util Functions
+// Type Definitions
 // ---------------------------------------------------------------------------
 
-function throttle(f, interval, scope) {
-  let timeout = 0;
-  let shouldFire = false;
-  let args = [];
+export type AnimationSpeed = 'fast' | 'slow' | number;
 
-  const fire = function() {
-    timeout = window.setTimeout(handleTimeout, interval);
-    f.apply(scope, args);
-  };
+export type Position = PositionObject | 'start' | string;
+export type SquareColor = 'black' | 'white';
+export type Offset = {top: number; left: number};
+export type Location = string;
+export type Action = 'snapback' | 'trash' | 'drop';
 
-  const handleTimeout = function() {
-    timeout = 0;
-    if (shouldFire) {
-      shouldFire = false;
-      fire();
+export type Animation =
+  | {
+      type: 'move';
+      source: string;
+      destination: string;
+      piece: string;
+      square?: undefined;
     }
-  };
-
-  return function(..._args) {
-    args = _args;
-    if (!timeout) {
-      fire();
-    } else {
-      shouldFire = true;
+  | {
+      type: 'add';
+      square: string;
+      piece: string;
     }
-  };
-}
+  | {
+      type: 'clear';
+      square: string;
+      piece: string;
+    };
 
-// function debounce (f, interval, scope) {
-//   var timeout = 0
-//   return function (_args) {
-//     window.clearTimeout(timeout)
-//     var args = arguments
-//     timeout = window.setTimeout(function () {
-//       f.apply(scope, args)
-//     }, interval)
-//   }
-// }
-
-function uuid() {
-  return 'xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx'.replace(/x/g, function() {
-    const r = (Math.random() * 16) | 0;
-    return r.toString(16);
-  });
-}
-
-function deepCopy(thing) {
-  return JSON.parse(JSON.stringify(thing));
-}
-
-function interpolateTemplate(str, obj) {
-  for (const key in obj) {
-    if (!obj.hasOwnProperty(key)) continue;
-    const keyTemplateStr = '{' + key + '}';
-    const value = obj[key];
-    while (str.indexOf(keyTemplateStr) !== -1) {
-      str = str.replace(keyTemplateStr, value);
-    }
-  }
-  return str;
-}
-
-if (RUN_ASSERTS) {
-  console.assert(interpolateTemplate('abc', {a: 'x'}) === 'abc');
-  console.assert(interpolateTemplate('{a}bc', {}) === '{a}bc');
-  console.assert(interpolateTemplate('{a}bc', {p: 'q'}) === '{a}bc');
-  console.assert(interpolateTemplate('{a}bc', {a: 'x'}) === 'xbc');
-  console.assert(interpolateTemplate('{a}bc{a}bc', {a: 'x'}) === 'xbcxbc');
-  console.assert(interpolateTemplate('{a}{a}{b}', {a: 'x', b: 'y'}) === 'xxy');
+export interface Config {
+  position: Position;
+  orientation: SquareColor;
+  showNotation: boolean;
+  draggable: boolean;
+  dropOffBoard: 'trash' | 'snapback';
+  sparePieces: boolean;
+  pieceTheme: string | ((p: string) => string);
+  appearSpeed: AnimationSpeed;
+  moveSpeed: AnimationSpeed;
+  snapbackSpeed: AnimationSpeed;
+  snapSpeed: AnimationSpeed;
+  trashSpeed: AnimationSpeed;
+  dragThrottleRate: number;
+  showErrors:
+    | boolean
+    | 'console'
+    | 'alert'
+    | ((code: number, msg: string, obj?: unknown) => void);
 }
 
 // ---------------------------------------------------------------------------
 // Predicates
 // ---------------------------------------------------------------------------
 
-function isString(s) {
-  return typeof s === 'string';
-}
-
-function isFunction(f) {
-  return typeof f === 'function';
-}
-
-function isInteger(n) {
-  return typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
-}
-
-function validAnimationSpeed(speed) {
+function validAnimationSpeed(speed: unknown): speed is AnimationSpeed {
   if (speed === 'fast' || speed === 'slow') return true;
   if (!isInteger(speed)) return false;
   return speed >= 0;
 }
 
-function validThrottleRate(rate) {
+function validThrottleRate(rate: unknown): rate is number {
   return isInteger(rate) && rate >= 1;
-}
-
-function validMove(move) {
-  // move should be a string
-  if (!isString(move)) return false;
-
-  // move should be in the form of "e2-e4", "f6-d5"
-  const squares = move.split('-');
-  if (squares.length !== 2) return false;
-
-  return validSquare(squares[0]) && validSquare(squares[1]);
-}
-
-function validSquare(square) {
-  return isString(square) && square.search(/^[a-h][1-8]$/) !== -1;
-}
-
-if (RUN_ASSERTS) {
-  console.assert(validSquare('a1'));
-  console.assert(validSquare('e2'));
-  console.assert(!validSquare('D2'));
-  console.assert(!validSquare('g9'));
-  console.assert(!validSquare('a'));
-  console.assert(!validSquare(true));
-  console.assert(!validSquare(null));
-  console.assert(!validSquare({}));
-}
-
-function validPieceCode(code) {
-  return isString(code) && code.search(/^[bw][KQRNBP]$/) !== -1;
-}
-
-if (RUN_ASSERTS) {
-  console.assert(validPieceCode('bP'));
-  console.assert(validPieceCode('bK'));
-  console.assert(validPieceCode('wK'));
-  console.assert(validPieceCode('wR'));
-  console.assert(!validPieceCode('WR'));
-  console.assert(!validPieceCode('Wr'));
-  console.assert(!validPieceCode('a'));
-  console.assert(!validPieceCode(true));
-  console.assert(!validPieceCode(null));
-  console.assert(!validPieceCode({}));
-}
-
-function validFen(fen) {
-  if (!isString(fen)) return false;
-
-  // cut off any move, castling, etc info from the end
-  // we're only interested in position information
-  fen = fen.replace(/ .+$/, '');
-
-  // expand the empty square numbers to just 1s
-  fen = expandFenEmptySquares(fen);
-
-  // FEN should be 8 sections separated by slashes
-  const chunks = fen.split('/');
-  if (chunks.length !== 8) return false;
-
-  // check each section
-  for (let i = 0; i < 8; i++) {
-    if (chunks[i].length !== 8 || chunks[i].search(/[^kqrnbpKQRNBP1]/) !== -1) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-if (RUN_ASSERTS) {
-  console.assert(validFen(START_FEN));
-  console.assert(validFen('8/8/8/8/8/8/8/8'));
-  console.assert(
-    validFen('r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R')
-  );
-  console.assert(
-    validFen('3r3r/1p4pp/2nb1k2/pP3p2/8/PB2PN2/p4PPP/R4RK1 b - - 0 1')
-  );
-  console.assert(
-    !validFen('3r3z/1p4pp/2nb1k2/pP3p2/8/PB2PN2/p4PPP/R4RK1 b - - 0 1')
-  );
-  console.assert(!validFen('anbqkbnr/8/8/8/8/8/PPPPPPPP/8'));
-  console.assert(!validFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/'));
-  console.assert(!validFen('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN'));
-  console.assert(!validFen('888888/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR'));
-  console.assert(!validFen('888888/pppppppp/74/8/8/8/PPPPPPPP/RNBQKBNR'));
-  console.assert(!validFen({}));
-}
-
-function validPositionObject(pos) {
-  if (typeof pos !== 'object' || pos === null) {
-    return false;
-  }
-
-  for (const i in pos) {
-    if (!pos.hasOwnProperty(i)) continue;
-
-    if (!validSquare(i) || !validPieceCode(pos[i])) {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-if (RUN_ASSERTS) {
-  console.assert(validPositionObject(START_POSITION));
-  console.assert(validPositionObject({}));
-  console.assert(validPositionObject({e2: 'wP'}));
-  console.assert(validPositionObject({e2: 'wP', d2: 'wP'}));
-  console.assert(!validPositionObject({e2: 'BP'}));
-  console.assert(!validPositionObject({y2: 'wP'}));
-  console.assert(!validPositionObject(null));
-  console.assert(!validPositionObject(undefined));
-  console.assert(!validPositionObject(1));
-  console.assert(!validPositionObject('start'));
-  console.assert(!validPositionObject(START_FEN));
 }
 
 function isTouchDevice() {
@@ -265,226 +132,10 @@ function isTouchDevice() {
 }
 
 // ---------------------------------------------------------------------------
-// Chess Util Functions
-// ---------------------------------------------------------------------------
-
-// convert FEN piece code to bP, wK, etc
-function fenToPieceCode(piece) {
-  // black piece
-  if (piece.toLowerCase() === piece) {
-    return 'b' + piece.toUpperCase();
-  }
-
-  // white piece
-  return 'w' + piece.toUpperCase();
-}
-
-// convert bP, wK, etc code to FEN structure
-function pieceCodeToFen(piece) {
-  const pieceCodeLetters = piece.split('');
-
-  // white piece
-  if (pieceCodeLetters[0] === 'w') {
-    return pieceCodeLetters[1].toUpperCase();
-  }
-
-  // black piece
-  return pieceCodeLetters[1].toLowerCase();
-}
-
-// convert FEN string to position object
-// returns false if the FEN string is invalid
-function fenToObj(fen) {
-  if (!validFen(fen)) return false;
-
-  // cut off any move, castling, etc info from the end
-  // we're only interested in position information
-  fen = fen.replace(/ .+$/, '');
-
-  const rows = fen.split('/');
-  const position = {};
-
-  let currentRow = 8;
-  for (let i = 0; i < 8; i++) {
-    const row = rows[i].split('');
-    let colIdx = 0;
-
-    // loop through each character in the FEN section
-    for (let j = 0; j < row.length; j++) {
-      // number / empty squares
-      if (row[j].search(/[1-8]/) !== -1) {
-        const numEmptySquares = parseInt(row[j], 10);
-        colIdx = colIdx + numEmptySquares;
-      } else {
-        // piece
-        const square = COLUMNS[colIdx] + currentRow;
-        position[square] = fenToPieceCode(row[j]);
-        colIdx = colIdx + 1;
-      }
-    }
-
-    currentRow = currentRow - 1;
-  }
-
-  return position;
-}
-
-// position object to FEN string
-// returns false if the obj is not a valid position object
-function objToFen(obj) {
-  if (!validPositionObject(obj)) return false;
-
-  let fen = '';
-
-  let currentRow = 8;
-  for (let i = 0; i < 8; i++) {
-    for (let j = 0; j < 8; j++) {
-      const square = COLUMNS[j] + currentRow;
-
-      // piece exists
-      if (obj.hasOwnProperty(square)) {
-        fen = fen + pieceCodeToFen(obj[square]);
-      } else {
-        // empty space
-        fen = fen + '1';
-      }
-    }
-
-    if (i !== 7) {
-      fen = fen + '/';
-    }
-
-    currentRow = currentRow - 1;
-  }
-
-  // squeeze the empty numbers together
-  fen = squeezeFenEmptySquares(fen);
-
-  return fen;
-}
-
-if (RUN_ASSERTS) {
-  console.assert(objToFen(START_POSITION) === START_FEN);
-  console.assert(objToFen({}) === '8/8/8/8/8/8/8/8');
-  console.assert(objToFen({a2: 'wP', b2: 'bP'}) === '8/8/8/8/8/8/Pp6/8');
-}
-
-function squeezeFenEmptySquares(fen) {
-  return fen
-    .replace(/11111111/g, '8')
-    .replace(/1111111/g, '7')
-    .replace(/111111/g, '6')
-    .replace(/11111/g, '5')
-    .replace(/1111/g, '4')
-    .replace(/111/g, '3')
-    .replace(/11/g, '2');
-}
-
-function expandFenEmptySquares(fen) {
-  return fen
-    .replace(/8/g, '11111111')
-    .replace(/7/g, '1111111')
-    .replace(/6/g, '111111')
-    .replace(/5/g, '11111')
-    .replace(/4/g, '1111')
-    .replace(/3/g, '111')
-    .replace(/2/g, '11');
-}
-
-// returns the distance between two squares
-function squareDistance(squareA, squareB) {
-  const squareAArray = squareA.split('');
-  const squareAx = COLUMNS.indexOf(squareAArray[0]) + 1;
-  const squareAy = parseInt(squareAArray[1], 10);
-
-  const squareBArray = squareB.split('');
-  const squareBx = COLUMNS.indexOf(squareBArray[0]) + 1;
-  const squareBy = parseInt(squareBArray[1], 10);
-
-  const xDelta = Math.abs(squareAx - squareBx);
-  const yDelta = Math.abs(squareAy - squareBy);
-
-  if (xDelta >= yDelta) return xDelta;
-  return yDelta;
-}
-
-// returns the square of the closest instance of piece
-// returns false if no instance of piece is found in position
-function findClosestPiece(position, piece, square) {
-  // create array of closest squares from square
-  const closestSquares = createRadius(square);
-
-  // search through the position in order of distance for the piece
-  for (let i = 0; i < closestSquares.length; i++) {
-    const s = closestSquares[i];
-
-    if (position.hasOwnProperty(s) && position[s] === piece) {
-      return s;
-    }
-  }
-
-  return false;
-}
-
-// returns an array of closest squares from square
-function createRadius(square) {
-  const squares = [];
-
-  // calculate distance of all squares
-  for (let i = 0; i < 8; i++) {
-    for (let j = 0; j < 8; j++) {
-      const s = COLUMNS[i] + (j + 1);
-
-      // skip the square we're starting from
-      if (square === s) continue;
-
-      squares.push({
-        square: s,
-        distance: squareDistance(square, s),
-      });
-    }
-  }
-
-  // sort by distance
-  squares.sort(function(a, b) {
-    return a.distance - b.distance;
-  });
-
-  // just return the square code
-  const surroundingSquares = [];
-  for (let i = 0; i < squares.length; i++) {
-    surroundingSquares.push(squares[i].square);
-  }
-
-  return surroundingSquares;
-}
-
-// given a position and a set of moves, return a new position
-// with the moves executed
-function calculatePositionFromMoves(position, moves) {
-  const newPosition = deepCopy(position);
-
-  for (const i in moves) {
-    if (!moves.hasOwnProperty(i)) continue;
-
-    // skip the move if the position doesn't have a piece on the source square
-    if (!newPosition.hasOwnProperty(i)) continue;
-
-    const piece = newPosition[i];
-    delete newPosition[i];
-    newPosition[moves[i]] = piece;
-  }
-
-  return newPosition;
-}
-
-// TODO: add some asserts here for calculatePositionFromMoves
-
-// ---------------------------------------------------------------------------
 // HTML
 // ---------------------------------------------------------------------------
 
-const buildContainerHTML = (hasSparePieces) => `
+const buildContainerHTML = (hasSparePieces: boolean) => `
     <div class="${CSS.chessboard}">
     ${
       hasSparePieces
@@ -504,7 +155,7 @@ const buildContainerHTML = (hasSparePieces) => `
 // ---------------------------------------------------------------------------
 
 // validate config / set default options
-function expandConfig(config) {
+function expandConfig(config: Partial<Config>): Config {
   // default for orientation is white
   if (config.orientation !== 'black') config.orientation = 'white';
 
@@ -547,10 +198,10 @@ function expandConfig(config) {
   if (!validThrottleRate(config.dragThrottleRate))
     config.dragThrottleRate = DEFAULT_DRAG_THROTTLE_RATE;
 
-  return config;
+  return config as Config;
 }
 
-const speedToMS = (speed) => {
+const speedToMS = (speed: AnimationSpeed) => {
   if (typeof speed === 'number') {
     return speed;
   }
@@ -581,16 +232,31 @@ export class ChessBoardElement extends HTMLElement {
     ];
   }
 
-  // TODO: enable class fields
+  config: Config;
 
-  // config = {};
+  // DOM elements
+  _board!: HTMLElement;
+  _draggedPiece!: HTMLElement;
+  _sparePiecesTop!: HTMLElement | null;
+  _sparePiecesBottom!: HTMLElement | null;
+  _container: HTMLElement;
 
-  // currentPosition = {};
+  boardBorderSize = 2;
+  currentOrientation: SquareColor = 'white';
+  currentPosition: PositionObject = {};
+  draggedPiece: string | null = null;
+  draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
+  draggedPieceSource: string | null = null;
+  isDragging = false;
+  sparePiecesElsIds: {[piece: string]: string} = {};
+  squareElsIds: {[square: string]: string} = {};
+  squareElsOffsets: {[square: string]: Offset} = {};
+  squareSize = 16;
 
   constructor() {
     super();
     this.attachShadow({mode: 'open'});
-    this.shadowRoot.innerHTML = `
+    this.shadowRoot!.innerHTML = `
       <style>
         :host {
           display: block;
@@ -600,32 +266,12 @@ export class ChessBoardElement extends HTMLElement {
       <div id="container"></div>
     `;
 
-    this._container = this.shadowRoot.querySelector('#container');
+    this._container = this.shadowRoot!.querySelector(
+      '#container'
+    ) as HTMLElement;
 
     // ensure the config object is what we expect
     const config = (this.config = expandConfig({}));
-
-    // DOM elements
-    this._board = null;
-    this._draggedPiece = null;
-    this._sparePiecesTop = null;
-    this._sparePiecesBottom = null;
-
-    // -------------------------------------------------------------------------
-    // Stateful
-    // -------------------------------------------------------------------------
-
-    this.boardBorderSize = 2;
-    this.currentOrientation = 'white';
-    this.currentPosition = {};
-    this.draggedPiece = null;
-    this.draggedPieceLocation = null;
-    this.draggedPieceSource = null;
-    this.isDragging = false;
-    this.sparePiecesElsIds = {};
-    this.squareElsIds = {};
-    this.squareElsOffsets = {};
-    this.squareSize = 16;
 
     const setInitialState = () => {
       this.currentOrientation = this.config.orientation;
@@ -635,7 +281,9 @@ export class ChessBoardElement extends HTMLElement {
         if (this.config.position === 'start') {
           this.currentPosition = deepCopy(START_POSITION);
         } else if (validFen(this.config.position)) {
-          this.currentPosition = fenToObj(this.config.position);
+          this.currentPosition = fenToObj(
+            this.config.position
+          ) as PositionObject;
         } else if (validPositionObject(this.config.position)) {
           this.currentPosition = deepCopy(this.config.position);
         } else {
@@ -652,15 +300,15 @@ export class ChessBoardElement extends HTMLElement {
     // Browser Events
     // -------------------------------------------------------------------------
 
-    const mousedownSquare = (e) => {
+    const mousedownSquare = (e: MouseEvent) => {
       // do nothing if we're not draggable
       if (!config.draggable) {
         return;
       }
 
       // do nothing if there is no piece on this square
-      const squareEl = e.target.closest('[data-square]');
-      const square = squareEl.getAttribute('data-square');
+      const squareEl = (e.target as HTMLElement).closest('[data-square]');
+      const square = squareEl!.getAttribute('data-square');
       if (!validSquare(square)) {
         return;
       }
@@ -675,15 +323,15 @@ export class ChessBoardElement extends HTMLElement {
       );
     };
 
-    const touchstartSquare = (e) => {
+    const touchstartSquare = (e: TouchEvent) => {
       // do nothing if we're not draggable
       if (!config.draggable) {
         return;
       }
 
       // do nothing if there is no piece on this square
-      const squareEl = e.target.closest('[data-square]');
-      const square = squareEl.getAttribute('data-square');
+      const squareEl = (e.target as HTMLElement).closest('[data-square]');
+      const square = squareEl!.getAttribute('data-square');
       if (!validSquare(square)) {
         return;
       }
@@ -691,7 +339,7 @@ export class ChessBoardElement extends HTMLElement {
         return;
       }
 
-      e = e.originalEvent;
+      e = (e as any).originalEvent;
       this.beginDraggingPiece(
         square,
         this.currentPosition[square],
@@ -700,25 +348,25 @@ export class ChessBoardElement extends HTMLElement {
       );
     };
 
-    const mousedownSparePiece = (e) => {
+    const mousedownSparePiece = (e: MouseEvent) => {
       // do nothing if sparePieces is not enabled
       if (!config.sparePieces) {
         return;
       }
-      const pieceEl = e.target.closest('[data-piece]');
-      const piece = pieceEl.getAttribute('data-piece');
+      const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
+      const piece = pieceEl!.getAttribute('data-piece');
 
       this.beginDraggingPiece('spare', piece, e.pageX, e.pageY);
     };
 
-    const touchstartSparePiece = (e) => {
+    const touchstartSparePiece = (e: TouchEvent) => {
       // do nothing if sparePieces is not enabled
       if (!config.sparePieces) return;
 
-      const pieceEl = e.target.closest('[data-piece]');
-      const piece = pieceEl.getAttribute('data-piece');
+      const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
+      const piece = pieceEl!.getAttribute('data-piece');
 
-      e = e.originalEvent;
+      e = (e as any).originalEvent;
       this.beginDraggingPiece(
         'spare',
         piece,
@@ -727,7 +375,7 @@ export class ChessBoardElement extends HTMLElement {
       );
     };
 
-    const mousemoveWindow = (e) => {
+    const mousemoveWindow = (e: MouseEvent) => {
       if (this.isDragging) {
         this.updateDraggedPiece(e.pageX, e.pageY);
       }
@@ -738,7 +386,7 @@ export class ChessBoardElement extends HTMLElement {
       this.config.dragThrottleRate
     );
 
-    const touchmoveWindow = (e) => {
+    const touchmoveWindow = (e: TouchEvent) => {
       // do nothing if we are not dragging a piece
       if (!this.isDragging) {
         return;
@@ -748,8 +396,8 @@ export class ChessBoardElement extends HTMLElement {
       e.preventDefault();
 
       this.updateDraggedPiece(
-        e.originalEvent.changedTouches[0].pageX,
-        e.originalEvent.changedTouches[0].pageY
+        (e as any).originalEvent.changedTouches[0].pageX,
+        (e as any).originalEvent.changedTouches[0].pageY
       );
     };
 
@@ -758,7 +406,7 @@ export class ChessBoardElement extends HTMLElement {
       this.config.dragThrottleRate
     );
 
-    const mouseupWindow = (e) => {
+    const mouseupWindow = (e: MouseEvent) => {
       // do nothing if we are not dragging a piece
       if (!this.isDragging) {
         return;
@@ -770,7 +418,7 @@ export class ChessBoardElement extends HTMLElement {
       this.stopDraggedPiece(location);
     };
 
-    const touchendWindow = (e) => {
+    const touchendWindow = (e: TouchEvent) => {
       // do nothing if we are not dragging a piece
       if (!this.isDragging) {
         return;
@@ -778,14 +426,14 @@ export class ChessBoardElement extends HTMLElement {
 
       // get the location
       const location = this.isXYOnSquare(
-        e.originalEvent.changedTouches[0].pageX,
-        e.originalEvent.changedTouches[0].pageY
+        (e as any).originalEvent.changedTouches[0].pageX,
+        (e as any).originalEvent.changedTouches[0].pageY
       );
 
       this.stopDraggedPiece(location);
     };
 
-    const mouseenterSquare = (e) => {
+    const mouseenterSquare = (e: Event) => {
       // do not fire this event if we are dragging a piece
       // NOTE: this should never happen, but it's a safeguard
       if (this.isDragging) {
@@ -793,7 +441,9 @@ export class ChessBoardElement extends HTMLElement {
       }
 
       // get the square
-      const square = e.currentTarget.getAttribute('data-square');
+      const square = (e.currentTarget as HTMLElement).getAttribute(
+        'data-square'
+      );
 
       // NOTE: this should never happen; defensive
       if (!validSquare(square)) {
@@ -801,7 +451,7 @@ export class ChessBoardElement extends HTMLElement {
       }
 
       // get the piece on this square
-      let piece = false;
+      let piece: string | false = false;
 
       if (this.currentPosition.hasOwnProperty(square)) {
         piece = this.currentPosition[square];
@@ -820,7 +470,7 @@ export class ChessBoardElement extends HTMLElement {
       );
     };
 
-    const mouseleaveSquare = (e) => {
+    const mouseleaveSquare = (e: Event) => {
       // do not fire this event if we are dragging a piece
       // NOTE: this should never happen, but it's a safeguard
       if (this.isDragging) {
@@ -828,7 +478,9 @@ export class ChessBoardElement extends HTMLElement {
       }
 
       // get the square
-      const square = e.currentTarget.getAttribute('data-square');
+      const square = (e.currentTarget as HTMLElement).getAttribute(
+        'data-square'
+      );
 
       // NOTE: this should never happen; defensive
       if (!validSquare(square)) {
@@ -836,7 +488,8 @@ export class ChessBoardElement extends HTMLElement {
       }
 
       // get the piece on this square
-      let piece = false;
+      let piece: string | false = false;
+
       if (this.currentPosition.hasOwnProperty(square)) {
         piece = this.currentPosition[square];
       }
@@ -861,31 +514,35 @@ export class ChessBoardElement extends HTMLElement {
 
     const addEvents = () => {
       // prevent "image drag"
-      this.shadowRoot.addEventListener('mousedown', (e) => {
-        if (e.target.matches('.' + CSS.piece)) {
+      this.shadowRoot!.addEventListener('mousedown', (e) => {
+        if ((e.target as HTMLElement).matches('.' + CSS.piece)) {
           e.preventDefault();
         }
       });
-      this.shadowRoot.addEventListener('mousemove', (e) => {
-        if (e.target.matches('.' + CSS.piece)) {
+      this.shadowRoot!.addEventListener('mousemove', (e) => {
+        if ((e.target as HTMLElement).matches('.' + CSS.piece)) {
           e.preventDefault();
         }
       });
 
       // mouse drag pieces
-      this.shadowRoot.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.' + CSS.square)) {
-          mousedownSquare(e);
+      this.shadowRoot!.addEventListener('mousedown', (e) => {
+        if ((e.target as HTMLElement).closest('.' + CSS.square)) {
+          mousedownSquare(e as MouseEvent);
         }
       });
-      this.shadowRoot.addEventListener('mousedown', (e) => {
-        if (e.target.closest('.' + CSS.sparePieces + ' .' + CSS.piece)) {
-          mousedownSparePiece(e);
+      this.shadowRoot!.addEventListener('mousedown', (e) => {
+        if (
+          (e.target as HTMLElement).closest(
+            '.' + CSS.sparePieces + ' .' + CSS.piece
+          )
+        ) {
+          mousedownSparePiece(e as MouseEvent);
         }
       });
 
       // mouse enter / leave square
-      const squares = this.shadowRoot.querySelectorAll('.' + CSS.square);
+      const squares = this.shadowRoot!.querySelectorAll('.' + CSS.square);
       for (const square of Array.from(squares)) {
         square.addEventListener('mouseenter', mouseenterSquare);
         square.addEventListener('mouseleave', mouseleaveSquare);
@@ -898,12 +555,16 @@ export class ChessBoardElement extends HTMLElement {
       // touch drag pieces
       if (isTouchDevice()) {
         this._board.addEventListener('touchstart', (e) => {
-          if (e.target.closest('.' + CSS.square)) {
+          if ((e.target as HTMLElement).closest('.' + CSS.square)) {
             touchstartSquare(e);
           }
         });
         this._container.addEventListener('touchstart', (e) => {
-          if (e.target.closest('.' + CSS.sparePieces + ' .' + CSS.piece)) {
+          if (
+            (e.target as HTMLElement).closest(
+              '.' + CSS.sparePieces + ' .' + CSS.piece
+            )
+          ) {
             touchstartSparePiece(e);
           }
         });
@@ -953,7 +614,7 @@ export class ChessBoardElement extends HTMLElement {
     // build board and save it in memory
     this._container.innerHTML = buildContainerHTML(this.config.sparePieces);
 
-    this._board = this._container.querySelector('.' + CSS.board);
+    this._board = this._container.querySelector('.' + CSS.board) as HTMLElement;
 
     this._sparePiecesTop = this._container.querySelector(
       '.' + CSS.sparePiecesTop
@@ -972,7 +633,7 @@ export class ChessBoardElement extends HTMLElement {
     this.resize();
   }
 
-  buildPieceImgSrc(piece) {
+  buildPieceImgSrc(piece: string) {
     if (isFunction(this.config.pieceTheme)) {
       return this.config.pieceTheme(piece);
     }
@@ -986,7 +647,7 @@ export class ChessBoardElement extends HTMLElement {
     return '';
   }
 
-  buildPieceHTML(piece, hidden, id) {
+  buildPieceHTML(piece: string, hidden?: boolean, id?: string) {
     return `
       <img
         src="${this.buildPieceImgSrc(piece)}"
@@ -998,7 +659,7 @@ export class ChessBoardElement extends HTMLElement {
       >`;
   }
 
-  buildBoardHTML(orientation) {
+  buildBoardHTML(orientation: SquareColor) {
     if (orientation !== 'black') {
       orientation = 'white';
     }
@@ -1013,7 +674,7 @@ export class ChessBoardElement extends HTMLElement {
       row = 1;
     }
 
-    let squareColor = 'white';
+    let squareColor: SquareColor = 'white';
     for (let i = 0; i < 8; i++) {
       // html += `<div class="${CSS.row}">`;
       for (let j = 0; j < 8; j++) {
@@ -1058,7 +719,7 @@ export class ChessBoardElement extends HTMLElement {
     return html;
   }
 
-  buildSparePiecesHTML(color) {
+  buildSparePiecesHTML(color: SquareColor) {
     let pieces = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP'];
     if (color === 'black') {
       pieces = ['bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
@@ -1081,7 +742,7 @@ export class ChessBoardElement extends HTMLElement {
   // Public Methods
   // -------------------------------------------------------------------------
 
-  position(position, useAnimation) {
+  position(position: Position, useAnimation?: boolean) {
     // no arguments, return the current position
     if (position === undefined) {
       return deepCopy(this.currentPosition);
@@ -1099,7 +760,7 @@ export class ChessBoardElement extends HTMLElement {
 
     // convert FEN to position object
     if (validFen(position)) {
-      position = fenToObj(position);
+      position = fenToObj(position) as PositionObject;
     }
 
     // validate position object
@@ -1140,21 +801,21 @@ export class ChessBoardElement extends HTMLElement {
   }
 
   // set the starting position
-  start(useAnimation) {
+  start(useAnimation?: boolean) {
     this.position('start', useAnimation);
   }
 
   // clear the board
-  clear(useAnimation) {
+  clear(useAnimation?: boolean) {
     this.position({}, useAnimation);
   }
 
   // move pieces
-  move(...args) {
+  move(...args: Array<string | false>) {
     let useAnimation = true;
 
     // collect the moves into an object
-    const moves = {};
+    const moves: {[from: string]: string} = {};
     for (const arg of args) {
       // any "false" to this function means no animations
       if (arg === false) {
@@ -1187,7 +848,7 @@ export class ChessBoardElement extends HTMLElement {
     return this.orientation('flip');
   }
 
-  orientation(arg) {
+  orientation(arg?: SquareColor | 'flip') {
     // no arguments, return the current orientation
     if (arg === undefined) {
       return this.currentOrientation;
@@ -1251,7 +912,7 @@ export class ChessBoardElement extends HTMLElement {
       'beforeend',
       this.buildPieceHTML('wP', true, draggedPieceId)
     );
-    this._draggedPiece = this.shadowRoot.getElementById(draggedPieceId);
+    this._draggedPiece = this.shadowRoot!.getElementById(draggedPieceId)!;
 
     this.resize();
   }
@@ -1261,17 +922,21 @@ export class ChessBoardElement extends HTMLElement {
     this._draggedPiece.remove();
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
+  attributeChangedCallback(
+    name: string,
+    oldValue: string | null,
+    newValue: string | null
+  ) {
     switch (name) {
       case 'position':
-        this.position(newValue, false);
+        this.position(newValue as any, false);
         break;
       case 'hide-notation':
         this.config.showNotation = newValue === null;
         this.drawBoard();
         break;
       case 'orientation':
-        this.orientation(newValue);
+        this.orientation(newValue as any);
         // this.drawBoard();
         break;
       case 'draggable-pieces':
@@ -1279,31 +944,31 @@ export class ChessBoardElement extends HTMLElement {
         this.drawBoard();
         break;
       case 'drop-off-board':
-        this.config.dropOffBoard = newValue;
+        this.config.dropOffBoard = newValue as any;
         this.drawBoard();
         break;
       case 'piece-theme':
-        this.config.pieceTheme = newValue;
+        this.config.pieceTheme = newValue as any;
         this.drawBoard();
         break;
       case 'move-speed':
-        this.config.moveSpeed = newValue;
+        this.config.moveSpeed = newValue as any;
         this.drawBoard();
         break;
       case 'snapback-speed':
-        this.config.snapbackSpeed = newValue;
+        this.config.snapbackSpeed = newValue as any;
         this.drawBoard();
         break;
       case 'snap-speed':
-        this.config.snapSpeed = newValue;
+        this.config.snapSpeed = newValue as any;
         this.drawBoard();
         break;
       case 'trash-speed':
-        this.config.trashSpeed = newValue;
+        this.config.trashSpeed = newValue as any;
         this.drawBoard();
         break;
       case 'appear-speed':
-        this.config.appearSpeed = newValue;
+        this.config.appearSpeed = newValue as any;
         this.drawBoard();
         break;
       case 'spare-pieces':
@@ -1319,25 +984,21 @@ export class ChessBoardElement extends HTMLElement {
   // -------------------------------------------------------------------------
 
   drawBoard() {
-    this._board.innerHTML = this.buildBoardHTML(
-      this.currentOrientation,
-      this.squareSize,
-      this.config.showNotation
-    );
+    this._board.innerHTML = this.buildBoardHTML(this.currentOrientation);
     this.drawPositionInstant();
 
     if (this.config.sparePieces) {
       if (this.currentOrientation === 'white') {
-        this._sparePiecesTop.innerHTML = this.buildSparePiecesHTML('black');
-        this._sparePiecesBottom.innerHTML = this.buildSparePiecesHTML('white');
+        this._sparePiecesTop!.innerHTML = this.buildSparePiecesHTML('black');
+        this._sparePiecesBottom!.innerHTML = this.buildSparePiecesHTML('white');
       } else {
-        this._sparePiecesTop.innerHTML = this.buildSparePiecesHTML('white');
-        this._sparePiecesBottom.innerHTML = this.buildSparePiecesHTML('black');
+        this._sparePiecesTop!.innerHTML = this.buildSparePiecesHTML('white');
+        this._sparePiecesBottom!.innerHTML = this.buildSparePiecesHTML('black');
       }
     }
   }
 
-  setCurrentPosition(position) {
+  setCurrentPosition(position: PositionObject) {
     const oldPos = deepCopy(this.currentPosition);
     const newPos = deepCopy(position);
     const oldFen = objToFen(oldPos);
@@ -1374,25 +1035,22 @@ export class ChessBoardElement extends HTMLElement {
         continue;
       }
       const pieceHTML = this.buildPieceHTML(this.currentPosition[i]);
-      const square = this.shadowRoot.querySelector('#' + this.squareElsIds[i]);
+      const square = this.shadowRoot!.querySelector(
+        '#' + this.squareElsIds[i]
+      )!;
       square.insertAdjacentHTML('beforeend', pieceHTML);
     }
   }
 
-  isXYOnSquare(x, y) {
-    for (const i in this.squareElsOffsets) {
-      if (!this.squareElsOffsets.hasOwnProperty(i)) {
-        continue;
-      }
-
-      const s = this.squareElsOffsets[i];
+  isXYOnSquare(x: number, y: number) {
+    for (const [square, offset] of Object.entries(this.squareElsOffsets)) {
       if (
-        x >= s.left &&
-        x < s.left + this.squareSize &&
-        y >= s.top &&
-        y < s.top + this.squareSize
+        x >= offset.left &&
+        x < offset.left + this.squareSize &&
+        y >= offset.top &&
+        y < offset.top + this.squareSize
       ) {
-        return i;
+        return square;
       }
     }
 
@@ -1408,7 +1066,9 @@ export class ChessBoardElement extends HTMLElement {
         continue;
       }
 
-      const square = this.shadowRoot.querySelector(`#${this.squareElsIds[i]}`);
+      const square = this.shadowRoot!.querySelector(
+        `#${this.squareElsIds[i]}`
+      )!;
       const rect = square.getBoundingClientRect();
       // emulates jQuery's offset()
       this.squareElsOffsets[i] = {
@@ -1419,7 +1079,7 @@ export class ChessBoardElement extends HTMLElement {
   }
 
   removeSquareHighlights() {
-    const squares = this.shadowRoot.querySelectorAll('.' + CSS.square);
+    const squares = this.shadowRoot!.querySelectorAll('.' + CSS.square);
     for (const square of Array.from(squares)) {
       square.classList.remove(CSS.highlight1);
       square.classList.remove(CSS.highlight2);
@@ -1456,9 +1116,9 @@ export class ChessBoardElement extends HTMLElement {
     };
 
     // get source square position
-    const square = this.shadowRoot.querySelector(
-      `#${this.squareElsIds[this.draggedPieceSource]}`
-    );
+    const square = this.shadowRoot!.querySelector(
+      `#${this.squareElsIds[this.draggedPieceSource!]}`
+    )!;
     const rect = square.getBoundingClientRect();
 
     // animate the piece to the target square
@@ -1477,7 +1137,7 @@ export class ChessBoardElement extends HTMLElement {
 
     // remove the source piece
     const newPosition = deepCopy(this.currentPosition);
-    delete newPosition[this.draggedPieceSource];
+    delete newPosition[this.draggedPieceSource!];
     this.setCurrentPosition(newPosition);
 
     // redraw the position
@@ -1488,25 +1148,25 @@ export class ChessBoardElement extends HTMLElement {
     this._draggedPiece.style.transitionDuration = `${speedToMS(
       this.config.trashSpeed
     )}ms`;
-    this._draggedPiece.style.opacity = 0;
+    this._draggedPiece.style.opacity = '0';
 
     // set state
     this.isDragging = false;
   }
 
-  dropDraggedPieceOnSquare(square) {
+  dropDraggedPieceOnSquare(square: string) {
     this.removeSquareHighlights();
 
     // update position
     const newPosition = deepCopy(this.currentPosition);
-    delete newPosition[this.draggedPieceSource];
+    delete newPosition[this.draggedPieceSource!];
     newPosition[square] = this.draggedPiece;
     this.setCurrentPosition(newPosition);
 
     // get target square information
-    const targetSquare = this.shadowRoot.querySelector(
+    const targetSquare = this.shadowRoot!.querySelector(
       `#${this.squareElsIds[square]}`
-    );
+    )!;
     const rect = targetSquare.getBoundingClientRect();
 
     // animation complete
@@ -1543,7 +1203,12 @@ export class ChessBoardElement extends HTMLElement {
     this.isDragging = false;
   }
 
-  beginDraggingPiece(source, piece, x, y) {
+  beginDraggingPiece(
+    source: string,
+    piece: string | null,
+    x: number,
+    y: number
+  ) {
     // Fire cancalable drag-start event
     const event = new CustomEvent('drag-start', {
       bubbles: true,
@@ -1576,8 +1241,8 @@ export class ChessBoardElement extends HTMLElement {
     this.captureSquareOffsets();
 
     // create the dragged piece
-    this._draggedPiece.setAttribute('src', this.buildPieceImgSrc(piece));
-    this._draggedPiece.style.opacity = 1;
+    this._draggedPiece.setAttribute('src', this.buildPieceImgSrc(piece!));
+    this._draggedPiece.style.opacity = '1';
     this._draggedPiece.style.display = '';
     this._draggedPiece.style.position = 'absolute';
     this._draggedPiece.style.left = `${x - this.squareSize / 2}px`;
@@ -1585,18 +1250,20 @@ export class ChessBoardElement extends HTMLElement {
 
     if (source !== 'spare') {
       // highlight the source square and hide the piece
-      const sourceSquare = this.shadowRoot.querySelector(
+      const sourceSquare = this.shadowRoot!.querySelector(
         `#${this.squareElsIds[source]}`
-      );
+      )!;
       sourceSquare.classList.add(CSS.highlight1);
-      const pieces = sourceSquare.querySelectorAll('.' + CSS.piece);
-      pieces.forEach((piece) => {
+      const pieces = sourceSquare.querySelectorAll(
+        '.' + CSS.piece
+      );
+      (pieces as NodeListOf<HTMLElement>).forEach((piece) => {
         piece.style.display = 'none';
       });
     }
   }
 
-  updateDraggedPiece(x, y) {
+  updateDraggedPiece(x: number, y: number) {
     // put the dragged piece over the mouse cursor
     this._draggedPiece.style.left = `${x - this.squareSize / 2}px`;
     this._draggedPiece.style.top = `${y - this.squareSize / 2}px`;
@@ -1611,17 +1278,17 @@ export class ChessBoardElement extends HTMLElement {
 
     // remove highlight from previous square
     if (validSquare(this.draggedPieceLocation)) {
-      const previousSquare = this.shadowRoot.querySelector(
+      const previousSquare = this.shadowRoot!.querySelector(
         '#' + this.squareElsIds[this.draggedPieceLocation]
-      );
+      )!;
       previousSquare.classList.remove(CSS.highlight2);
     }
 
     // add highlight to new square
     if (validSquare(location)) {
-      const locationSquare = this.shadowRoot.querySelector(
+      const locationSquare = this.shadowRoot!.querySelector(
         '#' + this.squareElsIds[location]
-      );
+      )!;
       locationSquare.classList.add(CSS.highlight2);
     }
 
@@ -1643,9 +1310,9 @@ export class ChessBoardElement extends HTMLElement {
     this.draggedPieceLocation = location;
   }
 
-  stopDraggedPiece(location) {
+  stopDraggedPiece(location: Location | 'offboard') {
     // determine what the action should be
-    let action = 'drop';
+    let action: Action = 'drop';
     if (location === 'offboard' && this.config.dropOffBoard === 'snapback') {
       action = 'snapback';
     }
@@ -1690,7 +1357,7 @@ export class ChessBoardElement extends HTMLElement {
         newPosition,
         oldPosition,
         orientation: this.currentOrientation,
-        setAction(a) {
+        setAction(a: Action) {
           action = a;
         },
       },
@@ -1742,13 +1409,13 @@ export class ChessBoardElement extends HTMLElement {
 
   // calculate an array of animations that need to happen in order to get
   // from pos1 to pos2
-  calculateAnimations(pos1, pos2) {
+  calculateAnimations(pos1: PositionObject, pos2: PositionObject): Animation[] {
     // make copies of both
     pos1 = deepCopy(pos1);
     pos2 = deepCopy(pos2);
 
-    const animations = [];
-    const squaresMovedTo = {};
+    const animations: Animation[] = [];
+    const squaresMovedTo: {[square: string]: boolean} = {};
 
     // remove pieces that are the same in both positions
     for (const i in pos2) {
@@ -1815,7 +1482,11 @@ export class ChessBoardElement extends HTMLElement {
   }
 
   // execute an array of animations
-  doAnimations(animations, oldPos, newPos) {
+  doAnimations(
+    animations: Animation[],
+    oldPos: PositionObject,
+    newPos: PositionObject
+  ) {
     if (animations.length === 0) {
       return;
     }
@@ -1844,14 +1515,14 @@ export class ChessBoardElement extends HTMLElement {
     for (const animation of animations) {
       // clear a piece
       if (animation.type === 'clear') {
-        const piece = this.shadowRoot.querySelector(
+        const piece = this.shadowRoot!.querySelector(
           '#' + this.squareElsIds[animation.square] + ' .' + CSS.piece
-        );
+        ) as HTMLElement;
         piece.style.transitionProperty = 'opacity';
         piece.style.transitionDuration = `${speedToMS(
           this.config.trashSpeed
         )}ms`;
-        piece.style.opacity = 0;
+        piece.style.opacity = '0';
         const transitionEndListener = () => {
           piece.removeEventListener('transitionend', transitionEndListener);
           onFinishAnimation3();
@@ -1860,22 +1531,22 @@ export class ChessBoardElement extends HTMLElement {
 
         // add a piece with no spare pieces - fade the piece onto the square
       } else if (animation.type === 'add' && !this.config.sparePieces) {
-        const square = this.shadowRoot.querySelector(
+        const square = this.shadowRoot!.querySelector(
           '#' + this.squareElsIds[animation.square]
-        );
+        ) as HTMLElement;
         square.insertAdjacentHTML(
           'beforeend',
           this.buildPieceHTML(animation.piece)
         );
-        const piece = square.querySelector('.' + CSS.piece);
+        const piece = square.querySelector('.' + CSS.piece) as HTMLElement;
 
-        piece.style.opacity = 0;
+        piece.style.opacity = '0';
         setTimeout(() => {
           piece.style.transitionProperty = 'opacity';
           piece.style.transitionDuration = `${speedToMS(
             this.config.appearSpeed
           )}ms`;
-          piece.style.opacity = 1;
+          piece.style.opacity = '1';
           const transitionEndListener = () => {
             piece.removeEventListener('transitionend', transitionEndListener);
             onFinishAnimation3();
@@ -1903,14 +1574,18 @@ export class ChessBoardElement extends HTMLElement {
     }
   }
 
-  animateSparePieceToSquare(piece, dest, completeFn) {
-    const srcSquare = this.shadowRoot.querySelector(
+  animateSparePieceToSquare(
+    piece: Piece,
+    dest: Location,
+    completeFn: Function
+  ) {
+    const srcSquare = this.shadowRoot!.querySelector(
       '#' + this.sparePiecesElsIds[piece]
-    );
+    ) as HTMLElement;
     const srcRect = srcSquare.getBoundingClientRect();
-    const destSquare = this.shadowRoot.querySelector(
+    const destSquare = this.shadowRoot!.querySelector(
       '#' + this.squareElsIds[dest]
-    );
+    ) as HTMLElement;
     const destRect = destSquare.getBoundingClientRect();
 
     // create the animate piece
@@ -1919,7 +1594,9 @@ export class ChessBoardElement extends HTMLElement {
       'beforeend',
       this.buildPieceHTML(piece, true, pieceId)
     );
-    const animatedPiece = this.shadowRoot.getElementById(pieceId);
+    const animatedPiece = this.shadowRoot!.getElementById(
+      pieceId
+    ) as HTMLElement;
     animatedPiece.style.display = '';
     animatedPiece.style.position = 'absolute';
     animatedPiece.style.left = `${srcRect.left}px`;
@@ -1957,15 +1634,20 @@ export class ChessBoardElement extends HTMLElement {
     animatedPiece.addEventListener('transitionend', onFinishAnimation2);
   }
 
-  animateSquareToSquare(src, dest, piece, completeFn) {
+  animateSquareToSquare(
+    src: Location,
+    dest: Location,
+    piece: Piece,
+    completeFn: Function
+  ) {
     // get information about the source and destination squares
-    const srcSquare = this.shadowRoot.querySelector(
+    const srcSquare = this.shadowRoot!.querySelector(
       '#' + this.squareElsIds[src]
-    );
+    ) as HTMLElement;
     const srcSquareRect = srcSquare.getBoundingClientRect();
-    const destSquare = this.shadowRoot.querySelector(
+    const destSquare = this.shadowRoot!.querySelector(
       '#' + this.squareElsIds[dest]
-    );
+    ) as HTMLElement;
     const destSquareRect = destSquare.getBoundingClientRect();
 
     // create the animated piece and absolutely position it
@@ -1975,7 +1657,9 @@ export class ChessBoardElement extends HTMLElement {
       'beforeend',
       this.buildPieceHTML(piece, true, animatedPieceId)
     );
-    const animatedPiece = this.shadowRoot.getElementById(animatedPieceId);
+    const animatedPiece = this.shadowRoot!.getElementById(
+      animatedPieceId
+    ) as HTMLElement;
     animatedPiece.style.display = '';
     animatedPiece.style.position = 'absolute';
     animatedPiece.style.left = `${srcSquareRect.left}px`;
@@ -2020,7 +1704,7 @@ export class ChessBoardElement extends HTMLElement {
   // Validation / Errors
   // -------------------------------------------------------------------------
 
-  error(code, msg, obj) {
+  error(code: number, msg: string, obj?: unknown) {
     // do nothing if showErrors is not set
     if (
       this.config.hasOwnProperty('showErrors') !== true ||

@@ -80,8 +80,10 @@ $('#startBtn').on('click', board2.start)
 $('#clearBtn').on('click', board2.clear)`.trim()
 
 function writeSrcFiles () {
-  fs.writeFileSync('website/js/chessboard.js', latestChessboardJS, encoding)
-  fs.writeFileSync('website/js/chessboard-styles.js', latestChessboardCSS, encoding)
+  fs.copyFileSync('lib/chessboard.js', 'website/js/chessboard.js');
+  fs.copyFileSync('lib/chessboard-styles.js', 'website/js/chessboard-styles.js');
+  fs.copyFileSync('lib/chess-utils.js', 'website/js/chess-utils.js');
+  fs.copyFileSync('lib/utils.js', 'website/js/utils.js');
 }
 
 function writeHomepage () {

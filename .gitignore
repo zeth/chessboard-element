@@ -3,8 +3,11 @@
 
 dist/
 node_modules/
+/lib/
 
 website/*.html
 website/js/chessboard-styles.js
 website/js/chessboard.js
+website/js/chess-utils.js
+website/js/utils.js
 website/examples/
