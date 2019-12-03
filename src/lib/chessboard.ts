@@ -13,7 +13,6 @@ import {
 } from 'lit-element';
 
 import {
-  throttle,
   uuid,
   deepCopy,
   interpolateTemplate,
@@ -39,8 +38,6 @@ import {
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-const DEFAULT_DRAG_THROTTLE_RATE = 20;
 
 // default animation speeds
 const DEFAULT_APPEAR_SPEED = 200;
@@ -98,15 +95,6 @@ export type Animation =
       piece: string;
     };
 
-export interface Config {
-  dragThrottleRate: number;
-  showErrors:
-    | boolean
-    | 'console'
-    | 'alert'
-    | ((code: number, msg: string, obj?: unknown) => void);
-}
-
 // ---------------------------------------------------------------------------
 // Predicates
 // ---------------------------------------------------------------------------
@@ -115,10 +103,6 @@ function validAnimationSpeed(speed: unknown): speed is AnimationSpeed {
   if (speed === 'fast' || speed === 'slow') return true;
   if (!isInteger(speed)) return false;
   return speed >= 0;
-}
-
-function validThrottleRate(rate: unknown): rate is number {
-  return isInteger(rate) && rate >= 1;
 }
 
 function isTouchDevice() {
@@ -135,19 +119,6 @@ const buildContainerHTML = () => `
       <div class="${CSS.board}"></div>
       <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>
     </div>`;
-
-// ---------------------------------------------------------------------------
-// Config
-// ---------------------------------------------------------------------------
-
-// validate config / set default options
-function expandConfig(config: Partial<Config>): Config {
-  // throttle rate
-  if (!validThrottleRate(config.dragThrottleRate))
-    config.dragThrottleRate = DEFAULT_DRAG_THROTTLE_RATE;
-
-  return config as Config;
-}
 
 const speedToMS = (speed: AnimationSpeed) => {
   if (typeof speed === 'number') {
@@ -250,8 +221,6 @@ export class ChessBoardElement extends UpdatingElement {
   })
   sparePieces = false;
 
-  private config: Config;
-
   // DOM elements
   private _board!: HTMLElement;
   private _draggedPieceElement!: HTMLElement;
@@ -287,9 +256,6 @@ export class ChessBoardElement extends UpdatingElement {
     this._container = this.shadowRoot!.querySelector(
       '#container'
     ) as HTMLElement;
-
-    // ensure the config object is what we expect
-    const config = (this.config = expandConfig({}));
 
     // draggable must be true if sparePieces is enabled
     if (this.sparePieces) this.draggablePieces = true;
@@ -379,11 +345,6 @@ export class ChessBoardElement extends UpdatingElement {
       }
     };
 
-    const throttledMousemoveWindow = throttle(
-      mousemoveWindow,
-      this.config.dragThrottleRate
-    );
-
     const touchmoveWindow = (e: TouchEvent) => {
       // do nothing if we are not dragging a piece
       if (!this._isDragging) {
@@ -398,11 +359,6 @@ export class ChessBoardElement extends UpdatingElement {
         (e as any).originalEvent.changedTouches[0].pageY
       );
     };
-
-    const throttledTouchmoveWindow = throttle(
-      touchmoveWindow,
-      this.config.dragThrottleRate
-    );
 
     const mouseupWindow = (e: MouseEvent) => {
       // do nothing if we are not dragging a piece
@@ -547,7 +503,7 @@ export class ChessBoardElement extends UpdatingElement {
       }
 
       // piece drag
-      window.addEventListener('mousemove', throttledMousemoveWindow);
+      window.addEventListener('mousemove', mousemoveWindow);
       window.addEventListener('mouseup', mouseupWindow);
 
       // touch drag pieces
@@ -567,7 +523,7 @@ export class ChessBoardElement extends UpdatingElement {
           }
         });
 
-        window.addEventListener('touchmove', throttledTouchmoveWindow);
+        window.addEventListener('touchmove', touchmoveWindow);
         window.addEventListener('touchend', touchendWindow);
       }
     };
