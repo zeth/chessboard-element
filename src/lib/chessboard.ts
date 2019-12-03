@@ -5,6 +5,8 @@
 // Released under the MIT license
 // https://github.com/oakmac/chessboardjs/blob/master/LICENSE.md
 
+import {UpdatingElement, customElement, property, PropertyValues} from 'lit-element';
+
 import {
   throttle,
   uuid,
@@ -25,9 +27,11 @@ import {
   validFen,
   validPositionObject,
   PositionObject,
+  Position,
   Piece,
   START_POSITION,
   COLUMNS,
+  normalizePozition,
 } from './chess-utils.js';
 
 // ---------------------------------------------------------------------------
@@ -67,7 +71,6 @@ const CSS = {
 
 export type AnimationSpeed = 'fast' | 'slow' | number;
 
-export type Position = PositionObject | 'start' | string;
 export type SquareColor = 'black' | 'white';
 export type Offset = {top: number; left: number};
 export type Location = string;
@@ -93,7 +96,6 @@ export type Animation =
     };
 
 export interface Config {
-  position: Position;
   orientation: SquareColor;
   showNotation: boolean;
   draggable: boolean;
@@ -217,10 +219,12 @@ const speedToMS = (speed: AnimationSpeed) => {
 const squareId = (square: Location) => `square-${square}`;
 const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
 
-export class ChessBoardElement extends HTMLElement {
+@customElement('chess-board')
+export class ChessBoardElement extends UpdatingElement {
+
   static get observedAttributes() {
     return [
-      'position',
+      ...super.observedAttributes,
       'hide-notation',
       'orientation',
       'draggable-pieces',
@@ -233,6 +237,28 @@ export class ChessBoardElement extends HTMLElement {
       'appear-speed',
       'spare-pieces',
     ];
+  }
+
+  /**
+   * The current position of the board, as a `PositionObject`. This property may
+   * be set externally, but only to valid `PositionObject`s. The value is copied
+   * before being applied to the board. Changes to the position object are not
+   * reflected in th rendering.
+   * 
+   * To set the position using FEN, or a keyword like `'start'`, or to use
+   * animations, use the `setPosition` method.
+   */
+  @property({
+    converter: (value: string) => normalizePozition(value),
+  })
+  get position(): PositionObject {
+    return this._currentPosition;
+  }
+
+  set position(v: PositionObject) {
+    const oldValue = this._currentPosition;
+    this._setCurrentPosition(v);
+    this.requestUpdate('position', oldValue);
   }
 
   private config: Config;
@@ -279,25 +305,6 @@ export class ChessBoardElement extends HTMLElement {
 
     const setInitialState = () => {
       this._currentOrientation = this.config.orientation;
-
-      // make sure position is valid
-      if (this.config.hasOwnProperty('position')) {
-        if (this.config.position === 'start') {
-          this._currentPosition = deepCopy(START_POSITION);
-        } else if (validFen(this.config.position)) {
-          this._currentPosition = fenToObj(
-            this.config.position
-          ) as PositionObject;
-        } else if (validPositionObject(this.config.position)) {
-          this._currentPosition = deepCopy(this.config.position);
-        } else {
-          this._error(
-            7263,
-            'Invalid value passed to config.position.',
-            this.config.position
-          );
-        }
-      }
     };
 
     // -------------------------------------------------------------------------
@@ -728,35 +735,16 @@ export class ChessBoardElement extends HTMLElement {
   // Public Methods
   // -------------------------------------------------------------------------
 
-  position(position: Position, useAnimation?: boolean) {
-    // no arguments, return the current position
-    if (position === undefined) {
-      return deepCopy(this._currentPosition);
-    }
-
-    // get position as FEN
-    if (isString(position) && position.toLowerCase() === 'fen') {
-      return objToFen(this._currentPosition);
-    }
-
-    // start position
-    if (isString(position) && position.toLowerCase() === 'start') {
-      position = deepCopy(START_POSITION);
-    }
-
-    // convert FEN to position object
-    if (validFen(position)) {
-      position = fenToObj(position) as PositionObject;
-    }
+  setPosition(position: Position, useAnimation?: boolean) {
+    position = normalizePozition(position);
 
     // validate position object
     if (!validPositionObject(position)) {
-      this._error(
+      throw this._error(
         6482,
         'Invalid value passed to the position method.',
         position
       );
-      return;
     }
 
     // default for useAnimations is true
@@ -783,17 +771,17 @@ export class ChessBoardElement extends HTMLElement {
 
   // shorthand method to get the current FEN
   fen() {
-    return this.position('fen');
+    return objToFen(this._currentPosition);
   }
 
   // set the starting position
   start(useAnimation?: boolean) {
-    this.position('start', useAnimation);
+    this.setPosition('start', useAnimation);
   }
 
   // clear the board
   clear(useAnimation?: boolean) {
-    this.position({}, useAnimation);
+    this.setPosition({}, useAnimation);
   }
 
   // move pieces
@@ -823,7 +811,7 @@ export class ChessBoardElement extends HTMLElement {
     const newPos = calculatePositionFromMoves(this._currentPosition, moves);
 
     // update the board
-    this.position(newPos, useAnimation);
+    this.setPosition(newPos, useAnimation);
 
     // return the new position object
     return newPos;
@@ -887,7 +875,15 @@ export class ChessBoardElement extends HTMLElement {
   // Lifecycle Callbacks
   // -------------------------------------------------------------------------
 
+  update(changedProperties: PropertyValues) {
+    super.update(changedProperties);
+    // TODO: call this._drawPositionInstant() most of the time so we don't
+    // redraw the board unnecessarily.
+    this._drawBoard();
+  }
+
   connectedCallback() {
+    super.connectedCallback();
     // create the drag piece
     const draggedPieceId = uuid();
 
@@ -901,6 +897,7 @@ export class ChessBoardElement extends HTMLElement {
   }
 
   disconnectedCallback() {
+    super.disconnectedCallback();
     // remove the drag piece from the page
     this._draggedPieceElement.remove();
   }
@@ -911,9 +908,8 @@ export class ChessBoardElement extends HTMLElement {
     newValue: string | null
   ) {
     switch (name) {
-      case 'position':
-        this.position(newValue as any, false);
-        break;
+      // case 'hide-notation':
+      //   break;
       case 'hide-notation':
         this.config.showNotation = newValue === null;
         this._drawBoard();
@@ -959,6 +955,8 @@ export class ChessBoardElement extends HTMLElement {
         this._initDOM();
         this._drawBoard();
         break;
+      default:
+        super.attributeChangedCallback(name, oldValue, newValue);
     }
   }
 
@@ -1602,43 +1600,11 @@ export class ChessBoardElement extends HTMLElement {
   // Validation / Errors
   // -------------------------------------------------------------------------
 
-  private _error(code: number, msg: string, obj?: unknown) {
-    // do nothing if showErrors is not set
-    if (
-      this.config.hasOwnProperty('showErrors') !== true ||
-      this.config.showErrors === false
-    ) {
-      return;
-    }
-
-    let errorText = 'Chessboard Error ' + code + ': ' + msg;
-
-    // print to console
-    if (
-      this.config.showErrors === 'console' &&
-      typeof console === 'object' &&
-      typeof console.log === 'function'
-    ) {
-      console.log(errorText);
-      if (arguments.length >= 2) {
-        console.log(obj);
-      }
-      return;
-    }
-
-    // alert errors
-    if (this.config.showErrors === 'alert') {
-      if (obj) {
-        errorText += '\n\n' + JSON.stringify(obj);
-      }
-      window.alert(errorText);
-      return;
-    }
-
-    // custom function
-    if (isFunction(this.config.showErrors)) {
-      this.config.showErrors(code, msg, obj);
-    }
+  private _error(code: number, msg: string, _obj?: unknown) {
+    const errorText = `Chessboard Error ${code} : ${msg}`;
+    this.dispatchEvent(new ErrorEvent('error', {
+      message: errorText,
+    }));
+    return new Error(errorText);
   }
 }
-customElements.define('chess-board', ChessBoardElement);

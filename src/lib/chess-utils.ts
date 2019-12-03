@@ -2,6 +2,7 @@ import {isString, deepCopy} from './utils.js';
 
 export type Piece = string;
 export type PositionObject = {[square: string]: Piece};
+export type Position = PositionObject | 'start' | string;
 
 const RUN_ASSERTS = true;
 export const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
@@ -246,6 +247,19 @@ if (RUN_ASSERTS) {
   console.assert(objToFen({}) === '8/8/8/8/8/8/8/8');
   console.assert(objToFen({a2: 'wP', b2: 'bP'}) === '8/8/8/8/8/8/Pp6/8');
 }
+
+export const normalizePozition = (position: Position) => {
+  // start position
+  if (isString(position) && position.toLowerCase() === 'start') {
+    position = deepCopy(START_POSITION);
+  }
+
+  // convert FEN to position object
+  if (validFen(position)) {
+    position = fenToObj(position) as PositionObject;
+  }
+  return position;
+};
 
 // returns the distance between two squares
 const squareDistance = (squareA: string, squareB: string) => {

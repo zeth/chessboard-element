@@ -17,7 +17,7 @@ const jsCDNLink = '<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.
 
 let chessboardJsScript = jsCDNLink
 if (useDevFile) {
-  chessboardJsScript = '<script type="module" src="js/chessboard.js"></script>';
+  chessboardJsScript = '<script type="module" src="../lib/chessboard.js"></script>';
 }
 
 // grab some mustache templates

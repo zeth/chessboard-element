@@ -12,9 +12,8 @@ Pass a <a href="docs.html#position_object">Position Object</a> as the second arg
 
 ===== JS
 const board = document.querySelector('chess-board');
-const position = {
+board.position = {
   d6: 'bK',
   d4: 'wP',
   e4: 'wK'
-}
-board.position(position, false);
+};

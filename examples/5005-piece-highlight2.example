@@ -80,7 +80,7 @@ function makeRandomMove () {
   updateHighlights();
 
   // update the board to the new position
-  board.position(game.fen())
+  board.setPosition(game.fen())
 }
 
 board.addEventListener('drop', (e) => {
@@ -124,6 +124,6 @@ board.addEventListener('move-end', (e) => {
 // update the board position after the piece snap
 // for castling, en passant, pawn promotion
 board.addEventListener('snap-end', (e) => {
-  board.position(game.fen())
+  board.setPosition(game.fen())
 });
 

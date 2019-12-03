@@ -31,5 +31,8 @@
     "format": "prettier src/lib/* --write",
     "lint": "eslint src/lib/*.ts",
     "website": "node scripts/website.js"
+  },
+  "dependencies": {
+    "lit-element": "^2.2.1"
   }
 }

@@ -18,7 +18,7 @@ Use the <a href="docs.html#methods:start"><code class="js plain">start</code></a
 const board = document.querySelector('chess-board');
 
 document.querySelector('#setRuyLopezBtn').addEventListener('click', () => {
-  board.position('r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R');
+  board.setPosition('r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R');
 });
 
 document.querySelector('#setStartBtn').addEventListener('click', () => {
@@ -26,7 +26,7 @@ document.querySelector('#setStartBtn').addEventListener('click', () => {
 });
 
 document.querySelector('#setRookCheckmateBtn').addEventListener('click', () => {
-  board.position({
+  board.setPosition({
     a4: 'bK',
     c4: 'wK',
     a7: 'wR'

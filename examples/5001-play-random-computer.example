@@ -47,7 +47,7 @@ function makeRandomMove () {
 
   const randomIdx = Math.floor(Math.random() * possibleMoves.length);
   game.move(possibleMoves[randomIdx]);
-  board.position(game.fen());
+  board.setPosition(game.fen());
 }
 
 board.addEventListener('drop', (e) => {
@@ -73,5 +73,5 @@ board.addEventListener('drop', (e) => {
 // update the board position after the piece snap
 // for castling, en passant, pawn promotion
 board.addEventListener('snap-end', (e) => {
-  board.position(game.fen());
+  board.setPosition(game.fen());
 });

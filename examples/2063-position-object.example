@@ -12,9 +12,8 @@ You can set the <a href="docs.html#config:position"><code class="js plain">posit
 
 ===== JS
 const board = document.querySelector('chess-board');
-const position = {
+board.position = {
   d6: 'bK',
   d4: 'wP',
   e4: 'wK'
 }
-board.position(position, false);

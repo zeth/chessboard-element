@@ -105,5 +105,5 @@ board.addEventListener('mouseout-square', (e) => {
 });
 
 board.addEventListener('snap-end', (e) => {
-  board.position(game.fen())
+  board.setPosition(game.fen())
 });
