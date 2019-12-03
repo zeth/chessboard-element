@@ -23,7 +23,7 @@ Use the <a href="docs.html#methods:orientation"><code class="js plain">orientati
 const board = document.querySelector('chess-board');
 
 document.querySelector('#showOrientationBtn').addEventListener('click', () => {
-  console.log('Board orientation is: ' + board.orientation());
+  console.log('Board orientation is: ' + board.orientation);
 });
 
 document.querySelector('#flipOrientationBtn').addEventListener('click', () => {
@@ -31,9 +31,9 @@ document.querySelector('#flipOrientationBtn').addEventListener('click', () => {
 });
 
 document.querySelector('#whiteOrientationBtn').addEventListener('click', () => {
-  board.orientation('white');
+  board.orientation = 'white';
 });
 
 document.querySelector('#blackOrientationBtn').addEventListener('click', () => {
-  board.orientation('black');
+  board.orientation = 'black';
 });

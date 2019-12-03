@@ -18,18 +18,15 @@ import {
 } from './utils.js';
 import {styles} from './chessboard-styles.js';
 import {
-  fenToObj,
   objToFen,
   findClosestPiece,
   calculatePositionFromMoves,
   validMove,
   validSquare,
-  validFen,
   validPositionObject,
   PositionObject,
   Position,
   Piece,
-  START_POSITION,
   COLUMNS,
   normalizePozition,
 } from './chess-utils.js';
@@ -270,6 +267,9 @@ export class ChessBoardElement extends UpdatingElement {
     this.hideNotation = !v;
   }
 
+  @property()
+  orientation: SquareColor = 'white';
+
   private config: Config;
 
   // DOM elements
@@ -279,7 +279,6 @@ export class ChessBoardElement extends UpdatingElement {
   private _sparePiecesBottom!: HTMLElement | null;
   private _container: HTMLElement;
 
-  private _currentOrientation: SquareColor = 'white';
   private _currentPosition: PositionObject = {};
   private _draggedPiece: string | null = null;
   private _draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
@@ -311,10 +310,6 @@ export class ChessBoardElement extends UpdatingElement {
 
     // ensure the config object is what we expect
     const config = (this.config = expandConfig({}));
-
-    const setInitialState = () => {
-      this._currentOrientation = this.config.orientation;
-    };
 
     // -------------------------------------------------------------------------
     // Browser Events
@@ -484,7 +479,7 @@ export class ChessBoardElement extends UpdatingElement {
             square,
             piece,
             position: deepCopy(this._currentPosition),
-            orientation: this._currentOrientation,
+            orientation: this.orientation,
           },
         })
       );
@@ -522,7 +517,7 @@ export class ChessBoardElement extends UpdatingElement {
             square,
             piece,
             position: deepCopy(this._currentPosition),
-            orientation: this._currentOrientation,
+            orientation: this.orientation,
           },
         })
       );
@@ -598,7 +593,6 @@ export class ChessBoardElement extends UpdatingElement {
     // Initialization
     // -------------------------------------------------------------------------
 
-    setInitialState();
     this._initDOM();
     addEvents();
   }
@@ -826,33 +820,11 @@ export class ChessBoardElement extends UpdatingElement {
     return newPos;
   }
 
-  // flip orientation
+  /**
+   * Flip the orientation.
+   */ 
   flip() {
-    return this.orientation('flip');
-  }
-
-  orientation(arg?: SquareColor | 'flip') {
-    // no arguments, return the current orientation
-    if (arg === undefined) {
-      return this._currentOrientation;
-    }
-
-    // set to white or black
-    if (arg === 'white' || arg === 'black') {
-      this._currentOrientation = arg;
-      this._drawBoard();
-      return this._currentOrientation;
-    }
-
-    // flip orientation
-    if (arg === 'flip') {
-      this._currentOrientation =
-        this._currentOrientation === 'white' ? 'black' : 'white';
-      this._drawBoard();
-      return this._currentOrientation;
-    }
-
-    this._error(5482, 'Invalid value passed to the orientation method.', arg);
+    this.orientation = this.orientation === 'white' ? 'black' : 'white';
   }
 
   resize() {
@@ -917,14 +889,6 @@ export class ChessBoardElement extends UpdatingElement {
     newValue: string | null
   ) {
     switch (name) {
-      // case 'hide-notation':
-      //   this.config.showNotation = newValue === null;
-      //   this._drawBoard();
-      //   break;
-      case 'orientation':
-        this.orientation(newValue as any);
-        // this.drawBoard();
-        break;
       case 'draggable-pieces':
         this.config.draggable = newValue !== null;
         this._drawBoard();
@@ -972,11 +936,11 @@ export class ChessBoardElement extends UpdatingElement {
   // -------------------------------------------------------------------------
 
   private _drawBoard() {
-    this._board.innerHTML = this._buildBoardHTML(this._currentOrientation);
+    this._board.innerHTML = this._buildBoardHTML(this.orientation);
     this._drawPositionInstant();
 
     if (this.config.sparePieces) {
-      if (this._currentOrientation === 'white') {
+      if (this.orientation === 'white') {
         this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('black');
         this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML('white');
       } else {
@@ -1066,7 +1030,7 @@ export class ChessBoardElement extends UpdatingElement {
             piece: this._draggedPiece,
             square: this._draggedPieceSource,
             position: deepCopy(this._currentPosition),
-            orientation: this._currentOrientation,
+            orientation: this.orientation,
           },
         })
       );
@@ -1170,7 +1134,7 @@ export class ChessBoardElement extends UpdatingElement {
         source,
         piece,
         position: deepCopy(this._currentPosition),
-        orientation: this._currentOrientation,
+        orientation: this.orientation,
       },
     });
     this.dispatchEvent(event);
@@ -1244,7 +1208,7 @@ export class ChessBoardElement extends UpdatingElement {
           source: this._draggedPieceSource,
           piece: this._draggedPiece,
           position: deepCopy(this._currentPosition),
-          orientation: this._currentOrientation,
+          orientation: this.orientation,
         },
       })
     );
@@ -1299,7 +1263,7 @@ export class ChessBoardElement extends UpdatingElement {
         piece: this._draggedPiece,
         newPosition,
         oldPosition,
-        orientation: this._currentOrientation,
+        orientation: this.orientation,
         setAction(a: Action) {
           action = a;
         },
