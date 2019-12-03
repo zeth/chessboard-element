@@ -97,7 +97,6 @@ export type Animation =
 
 export interface Config {
   orientation: SquareColor;
-  showNotation: boolean;
   draggable: boolean;
   dropOffBoard: 'trash' | 'snapback';
   sparePieces: boolean;
@@ -161,9 +160,6 @@ function expandConfig(config: Partial<Config>): Config {
   // default for orientation is white
   if (config.orientation !== 'black') config.orientation = 'white';
 
-  // default for showNotation is true
-  if (config.showNotation !== false) config.showNotation = true;
-
   // default for draggable is false
   if (config.draggable !== true) config.draggable = false;
 
@@ -225,7 +221,6 @@ export class ChessBoardElement extends UpdatingElement {
   static get observedAttributes() {
     return [
       ...super.observedAttributes,
-      'hide-notation',
       'orientation',
       'draggable-pieces',
       'drop-off-board',
@@ -259,6 +254,20 @@ export class ChessBoardElement extends UpdatingElement {
     const oldValue = this._currentPosition;
     this._setCurrentPosition(v);
     this.requestUpdate('position', oldValue);
+  }
+
+  @property({
+    attribute: 'hide-notation',
+    type: Boolean
+  })
+  hideNotation = false;
+
+  get showNotation() {
+    return !this.hideNotation;
+  }
+
+  set showNotation(v: boolean) {
+    this.hideNotation = !v;
   }
 
   private config: Config;
@@ -680,7 +689,7 @@ export class ChessBoardElement extends UpdatingElement {
           `part="${square} ${squareColor}" ` +
           '>';
 
-        if (this.config.showNotation) {
+        if (this.showNotation) {
           // alpha notation
           if (
             (orientation === 'white' && row === 1) ||
@@ -909,11 +918,9 @@ export class ChessBoardElement extends UpdatingElement {
   ) {
     switch (name) {
       // case 'hide-notation':
+      //   this.config.showNotation = newValue === null;
+      //   this._drawBoard();
       //   break;
-      case 'hide-notation':
-        this.config.showNotation = newValue === null;
-        this._drawBoard();
-        break;
       case 'orientation':
         this.orientation(newValue as any);
         // this.drawBoard();
