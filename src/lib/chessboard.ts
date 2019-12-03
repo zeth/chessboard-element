@@ -5,7 +5,12 @@
 // Released under the MIT license
 // https://github.com/oakmac/chessboardjs/blob/master/LICENSE.md
 
-import {UpdatingElement, customElement, property, PropertyValues} from 'lit-element';
+import {
+  UpdatingElement,
+  customElement,
+  property,
+  PropertyValues,
+} from 'lit-element';
 
 import {
   throttle,
@@ -94,11 +99,6 @@ export type Animation =
     };
 
 export interface Config {
-  appearSpeed: AnimationSpeed;
-  moveSpeed: AnimationSpeed;
-  snapbackSpeed: AnimationSpeed;
-  snapSpeed: AnimationSpeed;
-  trashSpeed: AnimationSpeed;
   dragThrottleRate: number;
   showErrors:
     | boolean
@@ -142,18 +142,6 @@ const buildContainerHTML = () => `
 
 // validate config / set default options
 function expandConfig(config: Partial<Config>): Config {
-  // animation speeds
-  if (!validAnimationSpeed(config.appearSpeed))
-    config.appearSpeed = DEFAULT_APPEAR_SPEED;
-  if (!validAnimationSpeed(config.moveSpeed))
-    config.moveSpeed = DEFAULT_MOVE_SPEED;
-  if (!validAnimationSpeed(config.snapbackSpeed))
-    config.snapbackSpeed = DEFAULT_SNAPBACK_SPEED;
-  if (!validAnimationSpeed(config.snapSpeed))
-    config.snapSpeed = DEFAULT_SNAP_SPEED;
-  if (!validAnimationSpeed(config.trashSpeed))
-    config.trashSpeed = DEFAULT_TRASH_SPEED;
-
   // throttle rate
   if (!validThrottleRate(config.dragThrottleRate))
     config.dragThrottleRate = DEFAULT_DRAG_THROTTLE_RATE;
@@ -180,26 +168,12 @@ const wikipediaPiece = (p: string) => `img/chesspieces/wikipedia/${p}.png`;
 
 @customElement('chess-board')
 export class ChessBoardElement extends UpdatingElement {
-
-  static get observedAttributes() {
-    return [
-      ...super.observedAttributes,
-      'piece-theme',
-      'move-speed',
-      'snapback-speed',
-      'snap-speed',
-      'trash-speed',
-      'appear-speed',
-      'spare-pieces',
-    ];
-  }
-
   /**
    * The current position of the board, as a `PositionObject`. This property may
    * be set externally, but only to valid `PositionObject`s. The value is copied
    * before being applied to the board. Changes to the position object are not
    * reflected in th rendering.
-   * 
+   *
    * To set the position using FEN, or a keyword like `'start'`, or to use
    * animations, use the `setPosition` method.
    */
@@ -218,7 +192,7 @@ export class ChessBoardElement extends UpdatingElement {
 
   @property({
     attribute: 'hide-notation',
-    type: Boolean
+    type: Boolean,
   })
   hideNotation = false;
 
@@ -244,6 +218,31 @@ export class ChessBoardElement extends UpdatingElement {
 
   @property({attribute: 'piece-theme'})
   pieceTheme: string | ((piece: string) => string) = wikipediaPiece;
+
+  @property({
+    attribute: 'move-speed',
+  })
+  moveSpeed: AnimationSpeed = DEFAULT_MOVE_SPEED;
+
+  @property({
+    attribute: 'snapback-speed',
+  })
+  snapbackSpeed: AnimationSpeed = DEFAULT_SNAPBACK_SPEED;
+
+  @property({
+    attribute: 'snap-speed',
+  })
+  snapSpeed: AnimationSpeed = DEFAULT_SNAP_SPEED;
+
+  @property({
+    attribute: 'trash-speed',
+  })
+  trashSpeed: AnimationSpeed = DEFAULT_TRASH_SPEED;
+
+  @property({
+    attribute: 'appear-speed',
+  })
+  appearSpeed: AnimationSpeed = DEFAULT_APPEAR_SPEED;
 
   @property({
     attribute: 'spare-pieces',
@@ -294,7 +293,6 @@ export class ChessBoardElement extends UpdatingElement {
 
     // draggable must be true if sparePieces is enabled
     if (this.sparePieces) this.draggablePieces = true;
-
 
     // -------------------------------------------------------------------------
     // Browser Events
@@ -804,7 +802,8 @@ export class ChessBoardElement extends UpdatingElement {
 
   /**
    * Flip the orientation.
-   */ 
+   */
+
   flip() {
     this.orientation = this.orientation === 'white' ? 'black' : 'white';
   }
@@ -844,7 +843,9 @@ export class ChessBoardElement extends UpdatingElement {
       'beforeend',
       this._buildPieceHTML('wP', true, draggedPieceId)
     );
-    this._draggedPieceElement = this.shadowRoot!.getElementById(draggedPieceId)!;
+    this._draggedPieceElement = this.shadowRoot!.getElementById(
+      draggedPieceId
+    )!;
 
     this.resize();
   }
@@ -853,37 +854,6 @@ export class ChessBoardElement extends UpdatingElement {
     super.disconnectedCallback();
     // remove the drag piece from the page
     this._draggedPieceElement.remove();
-  }
-
-  attributeChangedCallback(
-    name: string,
-    oldValue: string | null,
-    newValue: string | null
-  ) {
-    switch (name) {
-      case 'move-speed':
-        this.config.moveSpeed = newValue as any;
-        this._drawBoard();
-        break;
-      case 'snapback-speed':
-        this.config.snapbackSpeed = newValue as any;
-        this._drawBoard();
-        break;
-      case 'snap-speed':
-        this.config.snapSpeed = newValue as any;
-        this._drawBoard();
-        break;
-      case 'trash-speed':
-        this.config.trashSpeed = newValue as any;
-        this._drawBoard();
-        break;
-      case 'appear-speed':
-        this.config.appearSpeed = newValue as any;
-        this._drawBoard();
-        break;
-      default:
-        super.attributeChangedCallback(name, oldValue, newValue);
-    }
   }
 
   // -------------------------------------------------------------------------
@@ -897,10 +867,14 @@ export class ChessBoardElement extends UpdatingElement {
     if (this.sparePieces) {
       if (this.orientation === 'white') {
         this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('black');
-        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML('white');
+        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML(
+          'white'
+        );
       } else {
         this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('white');
-        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML('black');
+        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML(
+          'black'
+        );
       }
     }
   }
@@ -951,7 +925,9 @@ export class ChessBoardElement extends UpdatingElement {
     // TODO: test that this works with the polyfill
     const elements = this.shadowRoot!.elementsFromPoint(x, y);
     const square = elements.find((e) => e.classList.contains('square'));
-    return square === undefined ? 'offboard' : (square.getAttribute('data-square') as Location);
+    return square === undefined
+      ? 'offboard'
+      : (square.getAttribute('data-square') as Location);
   }
 
   private _removeSquareHighlights() {
@@ -997,9 +973,11 @@ export class ChessBoardElement extends UpdatingElement {
 
     // animate the piece to the target square
     this._draggedPieceElement.style.transitionProperty = 'top, left';
-    this._draggedPieceElement.style.transitionDuration = `${this.config.snapbackSpeed}ms`;
-    this._draggedPieceElement.style.top = `${rect.top + document.body.scrollTop}px`;
-    this._draggedPieceElement.style.left = `${rect.left + document.body.scrollLeft}px`;
+    this._draggedPieceElement.style.transitionDuration = `${this.snapbackSpeed}ms`;
+    this._draggedPieceElement.style.top = `${rect.top +
+      document.body.scrollTop}px`;
+    this._draggedPieceElement.style.left = `${rect.left +
+      document.body.scrollLeft}px`;
     this._draggedPieceElement.addEventListener('transitionend', complete);
 
     // set state
@@ -1020,7 +998,7 @@ export class ChessBoardElement extends UpdatingElement {
     // hide the dragged piece
     this._draggedPieceElement.style.transitionProperty = 'opacity';
     this._draggedPieceElement.style.transitionDuration = `${speedToMS(
-      this.config.trashSpeed
+      this.trashSpeed
     )}ms`;
     this._draggedPieceElement.style.opacity = '0';
 
@@ -1066,10 +1044,15 @@ export class ChessBoardElement extends UpdatingElement {
 
     // snap the piece to the target square
     this._draggedPieceElement.style.transitionProperty = 'top, left';
-    this._draggedPieceElement.style.transitionDuration = `${this.config.snapbackSpeed}ms`;
-    this._draggedPieceElement.style.top = `${rect.top + document.body.scrollTop}px`;
-    this._draggedPieceElement.style.left = `${rect.left + document.body.scrollLeft}px`;
-    this._draggedPieceElement.addEventListener('transitionend', onAnimationComplete);
+    this._draggedPieceElement.style.transitionDuration = `${this.snapbackSpeed}ms`;
+    this._draggedPieceElement.style.top = `${rect.top +
+      document.body.scrollTop}px`;
+    this._draggedPieceElement.style.left = `${rect.left +
+      document.body.scrollLeft}px`;
+    this._draggedPieceElement.addEventListener(
+      'transitionend',
+      onAnimationComplete
+    );
 
     // set state
     this._isDragging = false;
@@ -1110,7 +1093,10 @@ export class ChessBoardElement extends UpdatingElement {
     }
 
     // create the dragged piece
-    this._draggedPieceElement.setAttribute('src', this._buildPieceImgSrc(piece!));
+    this._draggedPieceElement.setAttribute(
+      'src',
+      this._buildPieceImgSrc(piece!)
+    );
     this._draggedPieceElement.style.opacity = '1';
     this._draggedPieceElement.style.display = '';
     this._draggedPieceElement.style.position = 'absolute';
@@ -1178,7 +1164,7 @@ export class ChessBoardElement extends UpdatingElement {
     if (location === 'offboard') {
       action = this.dropOffBoard === 'trash' ? 'trash' : 'snapback';
     }
-    
+
     // run their onDrop function, which can potentially change the drop action
     const newPosition = deepCopy(this._currentPosition);
 
@@ -1239,7 +1225,10 @@ export class ChessBoardElement extends UpdatingElement {
 
   // calculate an array of animations that need to happen in order to get
   // from pos1 to pos2
-  private _calculateAnimations(pos1: PositionObject, pos2: PositionObject): Animation[] {
+  private _calculateAnimations(
+    pos1: PositionObject,
+    pos2: PositionObject
+  ): Animation[] {
     // make copies of both
     pos1 = deepCopy(pos1);
     pos2 = deepCopy(pos2);
@@ -1348,9 +1337,7 @@ export class ChessBoardElement extends UpdatingElement {
         const square = this._getSquareElement(animation.square);
         const piece = square.querySelector(` .${CSS.piece}`) as HTMLElement;
         piece.style.transitionProperty = 'opacity';
-        piece.style.transitionDuration = `${speedToMS(
-          this.config.trashSpeed
-        )}ms`;
+        piece.style.transitionDuration = `${speedToMS(this.trashSpeed)}ms`;
         piece.style.opacity = '0';
         const transitionEndListener = () => {
           piece.removeEventListener('transitionend', transitionEndListener);
@@ -1370,9 +1357,7 @@ export class ChessBoardElement extends UpdatingElement {
         piece.style.opacity = '0';
         setTimeout(() => {
           piece.style.transitionProperty = 'opacity';
-          piece.style.transitionDuration = `${speedToMS(
-            this.config.appearSpeed
-          )}ms`;
+          piece.style.transitionDuration = `${speedToMS(this.appearSpeed)}ms`;
           piece.style.opacity = '1';
           const transitionEndListener = () => {
             piece.removeEventListener('transitionend', transitionEndListener);
@@ -1449,9 +1434,7 @@ export class ChessBoardElement extends UpdatingElement {
 
     // animate the piece to the destination square
     animatedPiece.style.transitionProperty = 'top, left';
-    animatedPiece.style.transitionDuration = `${speedToMS(
-      this.config.moveSpeed
-    )}ms`;
+    animatedPiece.style.transitionDuration = `${speedToMS(this.moveSpeed)}ms`;
     animatedPiece.style.top = `${destRect.top + document.body.scrollTop}px`;
     animatedPiece.style.left = `${destRect.left + document.body.scrollLeft}px`;
     animatedPiece.addEventListener('transitionend', onFinishAnimation2);
@@ -1509,9 +1492,7 @@ export class ChessBoardElement extends UpdatingElement {
 
     // animate the piece to the destination square
     animatedPiece.style.transitionProperty = 'top, left';
-    animatedPiece.style.transitionDuration = `${speedToMS(
-      this.config.moveSpeed
-    )}ms`;
+    animatedPiece.style.transitionDuration = `${speedToMS(this.moveSpeed)}ms`;
     animatedPiece.style.top = `${destSquareRect.top +
       document.body.scrollTop}px`;
     animatedPiece.style.left = `${destSquareRect.left +
@@ -1525,9 +1506,11 @@ export class ChessBoardElement extends UpdatingElement {
 
   private _error(code: number, msg: string, _obj?: unknown) {
     const errorText = `Chessboard Error ${code} : ${msg}`;
-    this.dispatchEvent(new ErrorEvent('error', {
-      message: errorText,
-    }));
+    this.dispatchEvent(
+      new ErrorEvent('error', {
+        message: errorText,
+      })
+    );
     return new Error(errorText);
   }
 }
