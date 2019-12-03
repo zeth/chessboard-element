@@ -95,7 +95,6 @@ export type Animation =
 
 export interface Config {
   sparePieces: boolean;
-  pieceTheme: string | ((p: string) => string);
   appearSpeed: AnimationSpeed;
   moveSpeed: AnimationSpeed;
   snapbackSpeed: AnimationSpeed;
@@ -155,14 +154,6 @@ function expandConfig(config: Partial<Config>): Config {
   // default for sparePieces is false
   if (config.sparePieces !== true) config.sparePieces = false;
 
-  // default piece theme is wikipedia
-  if (
-    !config.hasOwnProperty('pieceTheme') ||
-    (!isString(config.pieceTheme) && !isFunction(config.pieceTheme))
-  ) {
-    config.pieceTheme = 'img/chesspieces/wikipedia/{piece}.png';
-  }
-
   // animation speeds
   if (!validAnimationSpeed(config.appearSpeed))
     config.appearSpeed = DEFAULT_APPEAR_SPEED;
@@ -197,6 +188,7 @@ const speedToMS = (speed: AnimationSpeed) => {
 
 const squareId = (square: Location) => `square-${square}`;
 const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
+const wikipediaPiece = (p: string) => `img/chesspieces/wikipedia/${p}.png`;
 
 @customElement('chess-board')
 export class ChessBoardElement extends UpdatingElement {
@@ -261,6 +253,9 @@ export class ChessBoardElement extends UpdatingElement {
 
   @property({attribute: 'drop-off-board'})
   dropOffBoard: OffBoardAction = 'snapback';
+
+  @property({attribute: 'piece-theme'})
+  pieceTheme: string | ((piece: string) => string) = wikipediaPiece;
 
   private config: Config;
 
@@ -626,12 +621,12 @@ export class ChessBoardElement extends UpdatingElement {
   }
 
   private _buildPieceImgSrc(piece: string) {
-    if (isFunction(this.config.pieceTheme)) {
-      return this.config.pieceTheme(piece);
+    if (isFunction(this.pieceTheme)) {
+      return this.pieceTheme(piece);
     }
 
-    if (isString(this.config.pieceTheme)) {
-      return interpolateTemplate(this.config.pieceTheme, {piece: piece});
+    if (isString(this.pieceTheme)) {
+      return interpolateTemplate(this.pieceTheme, {piece: piece});
     }
 
     // NOTE: this should never happen
@@ -838,16 +833,6 @@ export class ChessBoardElement extends UpdatingElement {
     this._drawBoard();
   }
 
-  // TODO: reflect to attribute?
-  get pieceTheme() {
-    return this.config.pieceTheme;
-  }
-
-  set pieceTheme(v) {
-    this.config.pieceTheme = v;
-    this._drawPositionInstant();
-  }
-
   // -------------------------------------------------------------------------
   // Lifecycle Callbacks
   // -------------------------------------------------------------------------
@@ -885,10 +870,6 @@ export class ChessBoardElement extends UpdatingElement {
     newValue: string | null
   ) {
     switch (name) {
-      case 'piece-theme':
-        this.config.pieceTheme = newValue as any;
-        this._drawBoard();
-        break;
       case 'move-speed':
         this.config.moveSpeed = newValue as any;
         this._drawBoard();
