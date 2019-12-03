@@ -235,22 +235,22 @@ export class ChessBoardElement extends HTMLElement {
     ];
   }
 
-  config: Config;
+  private config: Config;
 
   // DOM elements
-  _board!: HTMLElement;
-  _draggedPiece!: HTMLElement;
-  _sparePiecesTop!: HTMLElement | null;
-  _sparePiecesBottom!: HTMLElement | null;
-  _container: HTMLElement;
+  private _board!: HTMLElement;
+  private _draggedPieceElement!: HTMLElement;
+  private _sparePiecesTop!: HTMLElement | null;
+  private _sparePiecesBottom!: HTMLElement | null;
+  private _container: HTMLElement;
 
-  currentOrientation: SquareColor = 'white';
-  currentPosition: PositionObject = {};
-  draggedPiece: string | null = null;
-  draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
-  draggedPieceSource: string | null = null;
-  isDragging = false;
-  squareSize = 16;
+  private _currentOrientation: SquareColor = 'white';
+  private _currentPosition: PositionObject = {};
+  private _draggedPiece: string | null = null;
+  private _draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
+  private _draggedPieceSource: string | null = null;
+  private _isDragging = false;
+  private _squareSize = 16;
 
   constructor() {
     super();
@@ -273,20 +273,20 @@ export class ChessBoardElement extends HTMLElement {
     const config = (this.config = expandConfig({}));
 
     const setInitialState = () => {
-      this.currentOrientation = this.config.orientation;
+      this._currentOrientation = this.config.orientation;
 
       // make sure position is valid
       if (this.config.hasOwnProperty('position')) {
         if (this.config.position === 'start') {
-          this.currentPosition = deepCopy(START_POSITION);
+          this._currentPosition = deepCopy(START_POSITION);
         } else if (validFen(this.config.position)) {
-          this.currentPosition = fenToObj(
+          this._currentPosition = fenToObj(
             this.config.position
           ) as PositionObject;
         } else if (validPositionObject(this.config.position)) {
-          this.currentPosition = deepCopy(this.config.position);
+          this._currentPosition = deepCopy(this.config.position);
         } else {
-          this.error(
+          this._error(
             7263,
             'Invalid value passed to config.position.',
             this.config.position
@@ -311,12 +311,12 @@ export class ChessBoardElement extends HTMLElement {
       if (!validSquare(square)) {
         return;
       }
-      if (!this.currentPosition.hasOwnProperty(square)) {
+      if (!this._currentPosition.hasOwnProperty(square)) {
         return;
       }
-      this.beginDraggingPiece(
+      this._beginDraggingPiece(
         square,
-        this.currentPosition[square],
+        this._currentPosition[square],
         e.pageX,
         e.pageY
       );
@@ -334,14 +334,14 @@ export class ChessBoardElement extends HTMLElement {
       if (!validSquare(square)) {
         return;
       }
-      if (!this.currentPosition.hasOwnProperty(square)) {
+      if (!this._currentPosition.hasOwnProperty(square)) {
         return;
       }
 
       e = (e as any).originalEvent;
-      this.beginDraggingPiece(
+      this._beginDraggingPiece(
         square,
-        this.currentPosition[square],
+        this._currentPosition[square],
         e.changedTouches[0].pageX,
         e.changedTouches[0].pageY
       );
@@ -355,7 +355,7 @@ export class ChessBoardElement extends HTMLElement {
       const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
       const piece = pieceEl!.getAttribute('data-piece');
 
-      this.beginDraggingPiece('spare', piece, e.pageX, e.pageY);
+      this._beginDraggingPiece('spare', piece, e.pageX, e.pageY);
     };
 
     const touchstartSparePiece = (e: TouchEvent) => {
@@ -366,7 +366,7 @@ export class ChessBoardElement extends HTMLElement {
       const piece = pieceEl!.getAttribute('data-piece');
 
       e = (e as any).originalEvent;
-      this.beginDraggingPiece(
+      this._beginDraggingPiece(
         'spare',
         piece,
         e.changedTouches[0].pageX,
@@ -375,8 +375,8 @@ export class ChessBoardElement extends HTMLElement {
     };
 
     const mousemoveWindow = (e: MouseEvent) => {
-      if (this.isDragging) {
-        this.updateDraggedPiece(e.pageX, e.pageY);
+      if (this._isDragging) {
+        this._updateDraggedPiece(e.pageX, e.pageY);
       }
     };
 
@@ -387,14 +387,14 @@ export class ChessBoardElement extends HTMLElement {
 
     const touchmoveWindow = (e: TouchEvent) => {
       // do nothing if we are not dragging a piece
-      if (!this.isDragging) {
+      if (!this._isDragging) {
         return;
       }
 
       // prevent screen from scrolling
       e.preventDefault();
 
-      this.updateDraggedPiece(
+      this._updateDraggedPiece(
         (e as any).originalEvent.changedTouches[0].pageX,
         (e as any).originalEvent.changedTouches[0].pageY
       );
@@ -407,35 +407,35 @@ export class ChessBoardElement extends HTMLElement {
 
     const mouseupWindow = (e: MouseEvent) => {
       // do nothing if we are not dragging a piece
-      if (!this.isDragging) {
+      if (!this._isDragging) {
         return;
       }
 
       // get the location
-      const location = this.isXYOnSquare(e.pageX, e.pageY);
+      const location = this._isXYOnSquare(e.pageX, e.pageY);
 
-      this.stopDraggedPiece(location);
+      this._stopDraggedPiece(location);
     };
 
     const touchendWindow = (e: TouchEvent) => {
       // do nothing if we are not dragging a piece
-      if (!this.isDragging) {
+      if (!this._isDragging) {
         return;
       }
 
       // get the location
-      const location = this.isXYOnSquare(
+      const location = this._isXYOnSquare(
         (e as any).originalEvent.changedTouches[0].pageX,
         (e as any).originalEvent.changedTouches[0].pageY
       );
 
-      this.stopDraggedPiece(location);
+      this._stopDraggedPiece(location);
     };
 
     const mouseenterSquare = (e: Event) => {
       // do not fire this event if we are dragging a piece
       // NOTE: this should never happen, but it's a safeguard
-      if (this.isDragging) {
+      if (this._isDragging) {
         return;
       }
 
@@ -452,8 +452,8 @@ export class ChessBoardElement extends HTMLElement {
       // get the piece on this square
       let piece: string | false = false;
 
-      if (this.currentPosition.hasOwnProperty(square)) {
-        piece = this.currentPosition[square];
+      if (this._currentPosition.hasOwnProperty(square)) {
+        piece = this._currentPosition[square];
       }
 
       this.dispatchEvent(
@@ -462,8 +462,8 @@ export class ChessBoardElement extends HTMLElement {
           detail: {
             square,
             piece,
-            position: deepCopy(this.currentPosition),
-            orientation: this.currentOrientation,
+            position: deepCopy(this._currentPosition),
+            orientation: this._currentOrientation,
           },
         })
       );
@@ -472,7 +472,7 @@ export class ChessBoardElement extends HTMLElement {
     const mouseleaveSquare = (e: Event) => {
       // do not fire this event if we are dragging a piece
       // NOTE: this should never happen, but it's a safeguard
-      if (this.isDragging) {
+      if (this._isDragging) {
         return;
       }
 
@@ -489,8 +489,8 @@ export class ChessBoardElement extends HTMLElement {
       // get the piece on this square
       let piece: string | false = false;
 
-      if (this.currentPosition.hasOwnProperty(square)) {
-        piece = this.currentPosition[square];
+      if (this._currentPosition.hasOwnProperty(square)) {
+        piece = this._currentPosition[square];
       }
 
       // execute their function
@@ -500,8 +500,8 @@ export class ChessBoardElement extends HTMLElement {
           detail: {
             square,
             piece,
-            position: deepCopy(this.currentPosition),
-            orientation: this.currentOrientation,
+            position: deepCopy(this._currentPosition),
+            orientation: this._currentOrientation,
           },
         })
       );
@@ -594,7 +594,7 @@ export class ChessBoardElement extends HTMLElement {
   // Markup Building
   // -------------------------------------------------------------------------
 
-  _initDOM() {
+  private _initDOM() {
     // create unique IDs for all the elements we will create
     // this._createElIds();
 
@@ -614,7 +614,7 @@ export class ChessBoardElement extends HTMLElement {
     this.resize();
   }
 
-  buildPieceImgSrc(piece: string) {
+  private _buildPieceImgSrc(piece: string) {
     if (isFunction(this.config.pieceTheme)) {
       return this.config.pieceTheme(piece);
     }
@@ -624,14 +624,14 @@ export class ChessBoardElement extends HTMLElement {
     }
 
     // NOTE: this should never happen
-    this.error(8272, 'Unable to build image source for config.pieceTheme.');
+    this._error(8272, 'Unable to build image source for config.pieceTheme.');
     return '';
   }
 
-  buildPieceHTML(piece: string, hidden?: boolean, id?: string) {
+  private _buildPieceHTML(piece: string, hidden?: boolean, id?: string) {
     return `
       <img
-        src="${this.buildPieceImgSrc(piece)}"
+        src="${this._buildPieceImgSrc(piece)}"
         ${isString(id) && id !== '' ? `id="${id}"` : ``}
         alt=""
         class="${CSS.piece}"
@@ -640,7 +640,7 @@ export class ChessBoardElement extends HTMLElement {
       >`;
   }
 
-  buildBoardHTML(orientation: SquareColor) {
+  private _buildBoardHTML(orientation: SquareColor) {
     if (orientation !== 'black') {
       orientation = 'white';
     }
@@ -700,7 +700,7 @@ export class ChessBoardElement extends HTMLElement {
     return html;
   }
 
-  buildSparePiecesHTML(color: SquareColor) {
+  private _buildSparePiecesHTML(color: SquareColor) {
     let pieces = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP'];
     if (color === 'black') {
       pieces = ['bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
@@ -708,7 +708,7 @@ export class ChessBoardElement extends HTMLElement {
 
     let html = '<div></div>';
     for (let i = 0; i < pieces.length; i++) {
-      html += `<div>${this.buildPieceHTML(
+      html += `<div>${this._buildPieceHTML(
         pieces[i],
         false,
         sparePieceId(pieces[i])
@@ -726,12 +726,12 @@ export class ChessBoardElement extends HTMLElement {
   position(position: Position, useAnimation?: boolean) {
     // no arguments, return the current position
     if (position === undefined) {
-      return deepCopy(this.currentPosition);
+      return deepCopy(this._currentPosition);
     }
 
     // get position as FEN
     if (isString(position) && position.toLowerCase() === 'fen') {
-      return objToFen(this.currentPosition);
+      return objToFen(this._currentPosition);
     }
 
     // start position
@@ -746,7 +746,7 @@ export class ChessBoardElement extends HTMLElement {
 
     // validate position object
     if (!validPositionObject(position)) {
-      this.error(
+      this._error(
         6482,
         'Invalid value passed to the position method.',
         position
@@ -761,18 +761,18 @@ export class ChessBoardElement extends HTMLElement {
 
     if (useAnimation) {
       // start the animations
-      const animations = this.calculateAnimations(
-        this.currentPosition,
+      const animations = this._calculateAnimations(
+        this._currentPosition,
         position
       );
-      this.doAnimations(animations, this.currentPosition, position);
+      this._doAnimations(animations, this._currentPosition, position);
 
       // set the new position
-      this.setCurrentPosition(position);
+      this._setCurrentPosition(position);
     } else {
       // instant update
-      this.setCurrentPosition(position);
-      this.drawPositionInstant();
+      this._setCurrentPosition(position);
+      this._drawPositionInstant();
     }
   }
 
@@ -806,7 +806,7 @@ export class ChessBoardElement extends HTMLElement {
 
       // skip invalid arguments
       if (!validMove(arg)) {
-        this.error(2826, 'Invalid move passed to the move method.', arg);
+        this._error(2826, 'Invalid move passed to the move method.', arg);
         continue;
       }
 
@@ -815,7 +815,7 @@ export class ChessBoardElement extends HTMLElement {
     }
 
     // calculate position from moves
-    const newPos = calculatePositionFromMoves(this.currentPosition, moves);
+    const newPos = calculatePositionFromMoves(this._currentPosition, moves);
 
     // update the board
     this.position(newPos, useAnimation);
@@ -832,43 +832,43 @@ export class ChessBoardElement extends HTMLElement {
   orientation(arg?: SquareColor | 'flip') {
     // no arguments, return the current orientation
     if (arg === undefined) {
-      return this.currentOrientation;
+      return this._currentOrientation;
     }
 
     // set to white or black
     if (arg === 'white' || arg === 'black') {
-      this.currentOrientation = arg;
-      this.drawBoard();
-      return this.currentOrientation;
+      this._currentOrientation = arg;
+      this._drawBoard();
+      return this._currentOrientation;
     }
 
     // flip orientation
     if (arg === 'flip') {
-      this.currentOrientation =
-        this.currentOrientation === 'white' ? 'black' : 'white';
-      this.drawBoard();
-      return this.currentOrientation;
+      this._currentOrientation =
+        this._currentOrientation === 'white' ? 'black' : 'white';
+      this._drawBoard();
+      return this._currentOrientation;
     }
 
-    this.error(5482, 'Invalid value passed to the orientation method.', arg);
+    this._error(5482, 'Invalid value passed to the orientation method.', arg);
   }
 
   resize() {
     // calulate the new square size
-    this.squareSize = this.calculateSquareSize();
+    this._squareSize = this._calculateSquareSize();
 
     // set board size
-    this._board.style.width = this.squareSize * 8 + 'px';
-    this._board.style.height = this.squareSize * 8 + 'px';
+    this._board.style.width = this._squareSize * 8 + 'px';
+    this._board.style.height = this._squareSize * 8 + 'px';
 
     // set drag piece size
-    if (this._draggedPiece) {
-      this._draggedPiece.style.height = `${this.squareSize}px`;
-      this._draggedPiece.style.width = `${this.squareSize}px`;
+    if (this._draggedPieceElement) {
+      this._draggedPieceElement.style.height = `${this._squareSize}px`;
+      this._draggedPieceElement.style.width = `${this._squareSize}px`;
     }
 
     // redraw the board
-    this.drawBoard();
+    this._drawBoard();
   }
 
   // TODO: reflect to attribute?
@@ -878,7 +878,7 @@ export class ChessBoardElement extends HTMLElement {
 
   set pieceTheme(v) {
     this.config.pieceTheme = v;
-    this.drawPositionInstant();
+    this._drawPositionInstant();
   }
 
   // -------------------------------------------------------------------------
@@ -891,16 +891,16 @@ export class ChessBoardElement extends HTMLElement {
 
     this._container.insertAdjacentHTML(
       'beforeend',
-      this.buildPieceHTML('wP', true, draggedPieceId)
+      this._buildPieceHTML('wP', true, draggedPieceId)
     );
-    this._draggedPiece = this.shadowRoot!.getElementById(draggedPieceId)!;
+    this._draggedPieceElement = this.shadowRoot!.getElementById(draggedPieceId)!;
 
     this.resize();
   }
 
   disconnectedCallback() {
     // remove the drag piece from the page
-    this._draggedPiece.remove();
+    this._draggedPieceElement.remove();
   }
 
   attributeChangedCallback(
@@ -914,7 +914,7 @@ export class ChessBoardElement extends HTMLElement {
         break;
       case 'hide-notation':
         this.config.showNotation = newValue === null;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'orientation':
         this.orientation(newValue as any);
@@ -922,40 +922,40 @@ export class ChessBoardElement extends HTMLElement {
         break;
       case 'draggable-pieces':
         this.config.draggable = newValue !== null;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'drop-off-board':
         this.config.dropOffBoard = newValue as any;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'piece-theme':
         this.config.pieceTheme = newValue as any;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'move-speed':
         this.config.moveSpeed = newValue as any;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'snapback-speed':
         this.config.snapbackSpeed = newValue as any;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'snap-speed':
         this.config.snapSpeed = newValue as any;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'trash-speed':
         this.config.trashSpeed = newValue as any;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'appear-speed':
         this.config.appearSpeed = newValue as any;
-        this.drawBoard();
+        this._drawBoard();
         break;
       case 'spare-pieces':
         this.config.sparePieces = newValue !== null;
         this._initDOM();
-        this.drawBoard();
+        this._drawBoard();
         break;
     }
   }
@@ -964,23 +964,23 @@ export class ChessBoardElement extends HTMLElement {
   // Control Flow
   // -------------------------------------------------------------------------
 
-  drawBoard() {
-    this._board.innerHTML = this.buildBoardHTML(this.currentOrientation);
-    this.drawPositionInstant();
+  private _drawBoard() {
+    this._board.innerHTML = this._buildBoardHTML(this._currentOrientation);
+    this._drawPositionInstant();
 
     if (this.config.sparePieces) {
-      if (this.currentOrientation === 'white') {
-        this._sparePiecesTop!.innerHTML = this.buildSparePiecesHTML('black');
-        this._sparePiecesBottom!.innerHTML = this.buildSparePiecesHTML('white');
+      if (this._currentOrientation === 'white') {
+        this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('black');
+        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML('white');
       } else {
-        this._sparePiecesTop!.innerHTML = this.buildSparePiecesHTML('white');
-        this._sparePiecesBottom!.innerHTML = this.buildSparePiecesHTML('black');
+        this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('white');
+        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML('black');
       }
     }
   }
 
-  setCurrentPosition(position: PositionObject) {
-    const oldPos = deepCopy(this.currentPosition);
+  private _setCurrentPosition(position: PositionObject) {
+    const oldPos = deepCopy(this._currentPosition);
     const newPos = deepCopy(position);
     const oldFen = objToFen(oldPos);
     const newFen = objToFen(newPos);
@@ -1000,10 +1000,10 @@ export class ChessBoardElement extends HTMLElement {
     );
 
     // update state
-    this.currentPosition = position;
+    this._currentPosition = position;
   }
 
-  drawPositionInstant() {
+  private _drawPositionInstant() {
     // clear the board
     const pieces = this._board.querySelectorAll('.' + CSS.piece);
     for (const piece of Array.from(pieces)) {
@@ -1011,24 +1011,24 @@ export class ChessBoardElement extends HTMLElement {
     }
 
     // add the pieces
-    for (const i in this.currentPosition) {
-      if (!this.currentPosition.hasOwnProperty(i)) {
+    for (const i in this._currentPosition) {
+      if (!this._currentPosition.hasOwnProperty(i)) {
         continue;
       }
-      const pieceHTML = this.buildPieceHTML(this.currentPosition[i]);
+      const pieceHTML = this._buildPieceHTML(this._currentPosition[i]);
       const square = this._getSquareElement(i);
       square.insertAdjacentHTML('beforeend', pieceHTML);
     }
   }
 
-  isXYOnSquare(x: number, y: number): Location | 'offboard' {
+  private _isXYOnSquare(x: number, y: number): Location | 'offboard' {
     // TODO: test that this works with the polyfill
     const elements = this.shadowRoot!.elementsFromPoint(x, y);
     const square = elements.find((e) => e.classList.contains('square'));
     return square === undefined ? 'offboard' : (square.getAttribute('data-square') as Location);
   }
 
-  removeSquareHighlights() {
+  private _removeSquareHighlights() {
     const squares = this.shadowRoot!.querySelectorAll('.' + CSS.square);
     for (const square of Array.from(squares)) {
       square.classList.remove(CSS.highlight1);
@@ -1036,80 +1036,80 @@ export class ChessBoardElement extends HTMLElement {
     }
   }
 
-  snapbackDraggedPiece() {
+  private _snapbackDraggedPiece() {
     // there is no "snapback" for spare pieces
-    if (this.draggedPieceSource === 'spare') {
-      this.trashDraggedPiece();
+    if (this._draggedPieceSource === 'spare') {
+      this._trashDraggedPiece();
       return;
     }
 
-    this.removeSquareHighlights();
+    this._removeSquareHighlights();
 
     // animation complete
     const complete = () => {
-      this._draggedPiece.removeEventListener('transitionend', complete);
+      this._draggedPieceElement.removeEventListener('transitionend', complete);
 
-      this.drawPositionInstant();
-      this._draggedPiece.style.display = 'none';
+      this._drawPositionInstant();
+      this._draggedPieceElement.style.display = 'none';
 
       this.dispatchEvent(
         new CustomEvent('snapback-end', {
           bubbles: true,
           detail: {
-            piece: this.draggedPiece,
-            square: this.draggedPieceSource,
-            position: deepCopy(this.currentPosition),
-            orientation: this.currentOrientation,
+            piece: this._draggedPiece,
+            square: this._draggedPieceSource,
+            position: deepCopy(this._currentPosition),
+            orientation: this._currentOrientation,
           },
         })
       );
     };
 
     // get source square position
-    const square = this._getSquareElement(this.draggedPieceSource!);
+    const square = this._getSquareElement(this._draggedPieceSource!);
     const rect = square.getBoundingClientRect();
 
     // animate the piece to the target square
-    this._draggedPiece.style.transitionProperty = 'top, left';
-    this._draggedPiece.style.transitionDuration = `${this.config.snapbackSpeed}ms`;
-    this._draggedPiece.style.top = `${rect.top + document.body.scrollTop}px`;
-    this._draggedPiece.style.left = `${rect.left + document.body.scrollLeft}px`;
-    this._draggedPiece.addEventListener('transitionend', complete);
+    this._draggedPieceElement.style.transitionProperty = 'top, left';
+    this._draggedPieceElement.style.transitionDuration = `${this.config.snapbackSpeed}ms`;
+    this._draggedPieceElement.style.top = `${rect.top + document.body.scrollTop}px`;
+    this._draggedPieceElement.style.left = `${rect.left + document.body.scrollLeft}px`;
+    this._draggedPieceElement.addEventListener('transitionend', complete);
 
     // set state
-    this.isDragging = false;
+    this._isDragging = false;
   }
 
-  trashDraggedPiece() {
-    this.removeSquareHighlights();
+  private _trashDraggedPiece() {
+    this._removeSquareHighlights();
 
     // remove the source piece
-    const newPosition = deepCopy(this.currentPosition);
-    delete newPosition[this.draggedPieceSource!];
-    this.setCurrentPosition(newPosition);
+    const newPosition = deepCopy(this._currentPosition);
+    delete newPosition[this._draggedPieceSource!];
+    this._setCurrentPosition(newPosition);
 
     // redraw the position
-    this.drawPositionInstant();
+    this._drawPositionInstant();
 
     // hide the dragged piece
-    this._draggedPiece.style.transitionProperty = 'opacity';
-    this._draggedPiece.style.transitionDuration = `${speedToMS(
+    this._draggedPieceElement.style.transitionProperty = 'opacity';
+    this._draggedPieceElement.style.transitionDuration = `${speedToMS(
       this.config.trashSpeed
     )}ms`;
-    this._draggedPiece.style.opacity = '0';
+    this._draggedPieceElement.style.opacity = '0';
 
     // set state
-    this.isDragging = false;
+    this._isDragging = false;
   }
 
-  dropDraggedPieceOnSquare(square: string) {
-    this.removeSquareHighlights();
+  private _dropDraggedPieceOnSquare(square: string) {
+    this._removeSquareHighlights();
 
     // update position
-    const newPosition = deepCopy(this.currentPosition);
-    delete newPosition[this.draggedPieceSource!];
-    newPosition[square] = this.draggedPiece;
-    this.setCurrentPosition(newPosition);
+    const newPosition = deepCopy(this._currentPosition);
+    delete newPosition[this._draggedPieceSource!];
+    newPosition[square] = this._draggedPiece;
+    this._setCurrentPosition(newPosition);
 
     // get target square information
     const targetSquare = this._getSquareElement(square);
@@ -1117,39 +1117,39 @@ export class ChessBoardElement extends HTMLElement {
 
     // animation complete
     const onAnimationComplete = () => {
-      this._draggedPiece.removeEventListener(
+      this._draggedPieceElement.removeEventListener(
         'transitionend',
         onAnimationComplete
       );
 
-      this.drawPositionInstant();
-      this._draggedPiece.style.display = 'none';
+      this._drawPositionInstant();
+      this._draggedPieceElement.style.display = 'none';
 
       // Fire the snap-end event
       this.dispatchEvent(
         new CustomEvent('snap-end', {
           bubbles: true,
           detail: {
-            source: this.draggedPieceSource,
+            source: this._draggedPieceSource,
             square,
-            piece: this.draggedPiece,
+            piece: this._draggedPiece,
           },
         })
       );
     };
 
     // snap the piece to the target square
-    this._draggedPiece.style.transitionProperty = 'top, left';
-    this._draggedPiece.style.transitionDuration = `${this.config.snapbackSpeed}ms`;
-    this._draggedPiece.style.top = `${rect.top + document.body.scrollTop}px`;
-    this._draggedPiece.style.left = `${rect.left + document.body.scrollLeft}px`;
-    this._draggedPiece.addEventListener('transitionend', onAnimationComplete);
+    this._draggedPieceElement.style.transitionProperty = 'top, left';
+    this._draggedPieceElement.style.transitionDuration = `${this.config.snapbackSpeed}ms`;
+    this._draggedPieceElement.style.top = `${rect.top + document.body.scrollTop}px`;
+    this._draggedPieceElement.style.left = `${rect.left + document.body.scrollLeft}px`;
+    this._draggedPieceElement.addEventListener('transitionend', onAnimationComplete);
 
     // set state
-    this.isDragging = false;
+    this._isDragging = false;
   }
 
-  beginDraggingPiece(
+  private _beginDraggingPiece(
     source: string,
     piece: string | null,
     x: number,
@@ -1162,8 +1162,8 @@ export class ChessBoardElement extends HTMLElement {
       detail: {
         source,
         piece,
-        position: deepCopy(this.currentPosition),
-        orientation: this.currentOrientation,
+        position: deepCopy(this._currentPosition),
+        orientation: this._currentOrientation,
       },
     });
     this.dispatchEvent(event);
@@ -1172,24 +1172,24 @@ export class ChessBoardElement extends HTMLElement {
     }
 
     // set state
-    this.isDragging = true;
-    this.draggedPiece = piece;
-    this.draggedPieceSource = source;
+    this._isDragging = true;
+    this._draggedPiece = piece;
+    this._draggedPieceSource = source;
 
     // if the piece came from spare pieces, location is offboard
     if (source === 'spare') {
-      this.draggedPieceLocation = 'offboard';
+      this._draggedPieceLocation = 'offboard';
     } else {
-      this.draggedPieceLocation = source;
+      this._draggedPieceLocation = source;
     }
 
     // create the dragged piece
-    this._draggedPiece.setAttribute('src', this.buildPieceImgSrc(piece!));
-    this._draggedPiece.style.opacity = '1';
-    this._draggedPiece.style.display = '';
-    this._draggedPiece.style.position = 'absolute';
-    this._draggedPiece.style.left = `${x - this.squareSize / 2}px`;
-    this._draggedPiece.style.top = `${y - this.squareSize / 2}px`;
+    this._draggedPieceElement.setAttribute('src', this._buildPieceImgSrc(piece!));
+    this._draggedPieceElement.style.opacity = '1';
+    this._draggedPieceElement.style.display = '';
+    this._draggedPieceElement.style.position = 'absolute';
+    this._draggedPieceElement.style.left = `${x - this._squareSize / 2}px`;
+    this._draggedPieceElement.style.top = `${y - this._squareSize / 2}px`;
 
     if (source !== 'spare') {
       // highlight the source square and hide the piece
@@ -1203,22 +1203,22 @@ export class ChessBoardElement extends HTMLElement {
     }
   }
 
-  updateDraggedPiece(x: number, y: number) {
+  private _updateDraggedPiece(x: number, y: number) {
     // put the dragged piece over the mouse cursor
-    this._draggedPiece.style.left = `${x - this.squareSize / 2}px`;
-    this._draggedPiece.style.top = `${y - this.squareSize / 2}px`;
+    this._draggedPieceElement.style.left = `${x - this._squareSize / 2}px`;
+    this._draggedPieceElement.style.top = `${y - this._squareSize / 2}px`;
 
     // get location
-    const location = this.isXYOnSquare(x, y);
+    const location = this._isXYOnSquare(x, y);
 
     // do nothing if the location has not changed
-    if (location === this.draggedPieceLocation) {
+    if (location === this._draggedPieceLocation) {
       return;
     }
 
     // remove highlight from previous square
-    if (validSquare(this.draggedPieceLocation)) {
-      const previousSquare = this._getSquareElement(this.draggedPieceLocation);
+    if (validSquare(this._draggedPieceLocation)) {
+      const previousSquare = this._getSquareElement(this._draggedPieceLocation);
       previousSquare.classList.remove(CSS.highlight2);
     }
 
@@ -1233,20 +1233,20 @@ export class ChessBoardElement extends HTMLElement {
         bubbles: true,
         detail: {
           newLocation: location,
-          oldLocation: this.draggedPieceLocation,
-          source: this.draggedPieceSource,
-          piece: this.draggedPiece,
-          position: deepCopy(this.currentPosition),
-          orientation: this.currentOrientation,
+          oldLocation: this._draggedPieceLocation,
+          source: this._draggedPieceSource,
+          piece: this._draggedPiece,
+          position: deepCopy(this._currentPosition),
+          orientation: this._currentOrientation,
         },
       })
     );
 
     // update state
-    this.draggedPieceLocation = location;
+    this._draggedPieceLocation = location;
   }
 
-  stopDraggedPiece(location: Location | 'offboard') {
+  private _stopDraggedPiece(location: Location | 'offboard') {
     // determine what the action should be
     let action: Action = 'drop';
     if (location === 'offboard' && this.config.dropOffBoard === 'snapback') {
@@ -1257,42 +1257,42 @@ export class ChessBoardElement extends HTMLElement {
     }
 
     // run their onDrop function, which can potentially change the drop action
-    const newPosition = deepCopy(this.currentPosition);
+    const newPosition = deepCopy(this._currentPosition);
 
     // source piece is a spare piece and position is off the board
     // if (draggedPieceSource === 'spare' && location === 'offboard') {...}
     // position has not changed; do nothing
 
     // source piece is a spare piece and position is on the board
-    if (this.draggedPieceSource === 'spare' && validSquare(location)) {
+    if (this._draggedPieceSource === 'spare' && validSquare(location)) {
       // add the piece to the board
-      newPosition[location] = this.draggedPiece;
+      newPosition[location] = this._draggedPiece;
     }
 
     // source piece was on the board and position is off the board
-    if (validSquare(this.draggedPieceSource) && location === 'offboard') {
+    if (validSquare(this._draggedPieceSource) && location === 'offboard') {
       // remove the piece from the board
-      delete newPosition[this.draggedPieceSource];
+      delete newPosition[this._draggedPieceSource];
     }
 
     // source piece was on the board and position is on the board
-    if (validSquare(this.draggedPieceSource) && validSquare(location)) {
+    if (validSquare(this._draggedPieceSource) && validSquare(location)) {
       // move the piece
-      delete newPosition[this.draggedPieceSource];
-      newPosition[location] = this.draggedPiece;
+      delete newPosition[this._draggedPieceSource];
+      newPosition[location] = this._draggedPiece;
     }
 
-    const oldPosition = deepCopy(this.currentPosition);
+    const oldPosition = deepCopy(this._currentPosition);
 
     const dropEvent = new CustomEvent('drop', {
       bubbles: true,
       detail: {
-        source: this.draggedPieceSource,
+        source: this._draggedPieceSource,
         target: location,
-        piece: this.draggedPiece,
+        piece: this._draggedPiece,
         newPosition,
         oldPosition,
-        orientation: this.currentOrientation,
+        orientation: this._currentOrientation,
         setAction(a: Action) {
           action = a;
         },
@@ -1302,11 +1302,11 @@ export class ChessBoardElement extends HTMLElement {
 
     // do it!
     if (action === 'snapback') {
-      this.snapbackDraggedPiece();
+      this._snapbackDraggedPiece();
     } else if (action === 'trash') {
-      this.trashDraggedPiece();
+      this._trashDraggedPiece();
     } else if (action === 'drop') {
-      this.dropDraggedPieceOnSquare(location);
+      this._dropDraggedPieceOnSquare(location);
     }
   }
 
@@ -1319,7 +1319,7 @@ export class ChessBoardElement extends HTMLElement {
   // get the width of the container element (could be anything), reduce by 1 for
   // fudge factor, and then keep reducing until we find an exact mod 8 for
   // our square size
-  calculateSquareSize() {
+  private _calculateSquareSize() {
     const containerWidth = this._container.offsetWidth;
     return containerWidth / 8;
   }
@@ -1330,7 +1330,7 @@ export class ChessBoardElement extends HTMLElement {
 
   // calculate an array of animations that need to happen in order to get
   // from pos1 to pos2
-  calculateAnimations(pos1: PositionObject, pos2: PositionObject): Animation[] {
+  private _calculateAnimations(pos1: PositionObject, pos2: PositionObject): Animation[] {
     // make copies of both
     pos1 = deepCopy(pos1);
     pos2 = deepCopy(pos2);
@@ -1403,7 +1403,7 @@ export class ChessBoardElement extends HTMLElement {
   }
 
   // execute an array of animations
-  doAnimations(
+  private _doAnimations(
     animations: Animation[],
     oldPos: PositionObject,
     newPos: PositionObject
@@ -1420,7 +1420,7 @@ export class ChessBoardElement extends HTMLElement {
         return;
       }
 
-      this.drawPositionInstant();
+      this._drawPositionInstant();
 
       this.dispatchEvent(
         new CustomEvent('move-end', {
@@ -1454,7 +1454,7 @@ export class ChessBoardElement extends HTMLElement {
         const square = this._getSquareElement(animation.square);
         square.insertAdjacentHTML(
           'beforeend',
-          this.buildPieceHTML(animation.piece)
+          this._buildPieceHTML(animation.piece)
         );
         const piece = square.querySelector('.' + CSS.piece) as HTMLElement;
 
@@ -1474,7 +1474,7 @@ export class ChessBoardElement extends HTMLElement {
 
         // add a piece with spare pieces - animate from the spares
       } else if (animation.type === 'add' && this.config.sparePieces) {
-        this.animateSparePieceToSquare(
+        this._animateSparePieceToSquare(
           animation.piece,
           animation.square,
           onFinishAnimation3
@@ -1482,7 +1482,7 @@ export class ChessBoardElement extends HTMLElement {
 
         // move a piece from squareA to squareB
       } else if (animation.type === 'move') {
-        this.animateSquareToSquare(
+        this._animateSquareToSquare(
           animation.source,
           animation.destination,
           animation.piece,
@@ -1492,7 +1492,7 @@ export class ChessBoardElement extends HTMLElement {
     }
   }
 
-  animateSparePieceToSquare(
+  private _animateSparePieceToSquare(
     piece: Piece,
     dest: Location,
     completeFn: Function
@@ -1506,7 +1506,7 @@ export class ChessBoardElement extends HTMLElement {
     const pieceId = uuid();
     this._container.insertAdjacentHTML(
       'beforeend',
-      this.buildPieceHTML(piece, true, pieceId)
+      this._buildPieceHTML(piece, true, pieceId)
     );
     const animatedPiece = this.shadowRoot!.getElementById(
       pieceId
@@ -1515,8 +1515,8 @@ export class ChessBoardElement extends HTMLElement {
     animatedPiece.style.position = 'absolute';
     animatedPiece.style.left = `${srcRect.left}px`;
     animatedPiece.style.top = `${srcRect.top}px`;
-    animatedPiece.style.width = `${this.squareSize}px`;
-    animatedPiece.style.height = `${this.squareSize}px`;
+    animatedPiece.style.width = `${this._squareSize}px`;
+    animatedPiece.style.height = `${this._squareSize}px`;
 
     // on complete
     const onFinishAnimation2 = () => {
@@ -1527,7 +1527,7 @@ export class ChessBoardElement extends HTMLElement {
       if (destPiece) {
         destPiece.remove();
       }
-      destSquare.insertAdjacentHTML('beforeend', this.buildPieceHTML(piece));
+      destSquare.insertAdjacentHTML('beforeend', this._buildPieceHTML(piece));
 
       // remove the animated piece
       animatedPiece.remove();
@@ -1548,7 +1548,7 @@ export class ChessBoardElement extends HTMLElement {
     animatedPiece.addEventListener('transitionend', onFinishAnimation2);
   }
 
-  animateSquareToSquare(
+  private _animateSquareToSquare(
     src: Location,
     dest: Location,
     piece: Piece,
@@ -1565,7 +1565,7 @@ export class ChessBoardElement extends HTMLElement {
     const animatedPieceId = uuid();
     this._container.insertAdjacentHTML(
       'beforeend',
-      this.buildPieceHTML(piece, true, animatedPieceId)
+      this._buildPieceHTML(piece, true, animatedPieceId)
     );
     const animatedPiece = this.shadowRoot!.getElementById(
       animatedPieceId
@@ -1574,8 +1574,8 @@ export class ChessBoardElement extends HTMLElement {
     animatedPiece.style.position = 'absolute';
     animatedPiece.style.left = `${srcSquareRect.left}px`;
     animatedPiece.style.top = `${srcSquareRect.top}px`;
-    animatedPiece.style.width = `${this.squareSize}px`;
-    animatedPiece.style.height = `${this.squareSize}px`;
+    animatedPiece.style.width = `${this._squareSize}px`;
+    animatedPiece.style.height = `${this._squareSize}px`;
 
     // remove original piece from source square
     const srcPiece = srcSquare.querySelector('.' + CSS.piece);
@@ -1587,7 +1587,7 @@ export class ChessBoardElement extends HTMLElement {
       animatedPiece.removeEventListener('transitionend', onFinishAnimation1);
 
       // add the "real" piece to the destination square
-      destSquare.insertAdjacentHTML('beforeend', this.buildPieceHTML(piece));
+      destSquare.insertAdjacentHTML('beforeend', this._buildPieceHTML(piece));
 
       // remove the animated piece
       animatedPiece.remove();
@@ -1614,7 +1614,7 @@ export class ChessBoardElement extends HTMLElement {
   // Validation / Errors
   // -------------------------------------------------------------------------
 
-  error(code: number, msg: string, obj?: unknown) {
+  private _error(code: number, msg: string, obj?: unknown) {
     // do nothing if showErrors is not set
     if (
       this.config.hasOwnProperty('showErrors') !== true ||
