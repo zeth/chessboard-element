@@ -71,7 +71,8 @@ export type AnimationSpeed = 'fast' | 'slow' | number;
 export type SquareColor = 'black' | 'white';
 export type Offset = {top: number; left: number};
 export type Location = string;
-export type Action = 'snapback' | 'trash' | 'drop';
+export type Action = OffBoardAction | 'drop';
+export type OffBoardAction = 'trash' | 'snapback';
 
 export type Animation =
   | {
@@ -93,9 +94,6 @@ export type Animation =
     };
 
 export interface Config {
-  orientation: SquareColor;
-  draggable: boolean;
-  dropOffBoard: 'trash' | 'snapback';
   sparePieces: boolean;
   pieceTheme: string | ((p: string) => string);
   appearSpeed: AnimationSpeed;
@@ -154,20 +152,8 @@ const buildContainerHTML = (hasSparePieces: boolean) => `
 
 // validate config / set default options
 function expandConfig(config: Partial<Config>): Config {
-  // default for orientation is white
-  if (config.orientation !== 'black') config.orientation = 'white';
-
-  // default for draggable is false
-  if (config.draggable !== true) config.draggable = false;
-
-  // default for dropOffBoard is 'snapback'
-  if (config.dropOffBoard !== 'trash') config.dropOffBoard = 'snapback';
-
   // default for sparePieces is false
   if (config.sparePieces !== true) config.sparePieces = false;
-
-  // draggable must be true if sparePieces is enabled
-  if (config.sparePieces) config.draggable = true;
 
   // default piece theme is wikipedia
   if (
@@ -218,9 +204,6 @@ export class ChessBoardElement extends UpdatingElement {
   static get observedAttributes() {
     return [
       ...super.observedAttributes,
-      'orientation',
-      'draggable-pieces',
-      'drop-off-board',
       'piece-theme',
       'move-speed',
       'snapback-speed',
@@ -270,6 +253,15 @@ export class ChessBoardElement extends UpdatingElement {
   @property()
   orientation: SquareColor = 'white';
 
+  @property({
+    attribute: 'draggable-pieces',
+    type: Boolean,
+  })
+  draggablePieces = false;
+
+  @property({attribute: 'drop-off-board'})
+  dropOffBoard: OffBoardAction = 'snapback';
+
   private config: Config;
 
   // DOM elements
@@ -311,13 +303,17 @@ export class ChessBoardElement extends UpdatingElement {
     // ensure the config object is what we expect
     const config = (this.config = expandConfig({}));
 
+    // draggable must be true if sparePieces is enabled
+    if (config.sparePieces) this.draggablePieces = true;
+
+
     // -------------------------------------------------------------------------
     // Browser Events
     // -------------------------------------------------------------------------
 
     const mousedownSquare = (e: MouseEvent) => {
       // do nothing if we're not draggable
-      if (!config.draggable) {
+      if (!this.draggablePieces) {
         return;
       }
 
@@ -340,7 +336,7 @@ export class ChessBoardElement extends UpdatingElement {
 
     const touchstartSquare = (e: TouchEvent) => {
       // do nothing if we're not draggable
-      if (!config.draggable) {
+      if (!this.draggablePieces) {
         return;
       }
 
@@ -889,14 +885,6 @@ export class ChessBoardElement extends UpdatingElement {
     newValue: string | null
   ) {
     switch (name) {
-      case 'draggable-pieces':
-        this.config.draggable = newValue !== null;
-        this._drawBoard();
-        break;
-      case 'drop-off-board':
-        this.config.dropOffBoard = newValue as any;
-        this._drawBoard();
-        break;
       case 'piece-theme':
         this.config.pieceTheme = newValue as any;
         this._drawBoard();
@@ -1220,13 +1208,10 @@ export class ChessBoardElement extends UpdatingElement {
   private _stopDraggedPiece(location: Location | 'offboard') {
     // determine what the action should be
     let action: Action = 'drop';
-    if (location === 'offboard' && this.config.dropOffBoard === 'snapback') {
-      action = 'snapback';
+    if (location === 'offboard') {
+      action = this.dropOffBoard === 'trash' ? 'trash' : 'snapback';
     }
-    if (location === 'offboard' && this.config.dropOffBoard === 'trash') {
-      action = 'trash';
-    }
-
+    
     // run their onDrop function, which can potentially change the drop action
     const newPosition = deepCopy(this._currentPosition);
 
