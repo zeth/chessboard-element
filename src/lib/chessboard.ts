@@ -94,7 +94,6 @@ export type Animation =
     };
 
 export interface Config {
-  sparePieces: boolean;
   appearSpeed: AnimationSpeed;
   moveSpeed: AnimationSpeed;
   snapbackSpeed: AnimationSpeed;
@@ -130,19 +129,11 @@ function isTouchDevice() {
 // HTML
 // ---------------------------------------------------------------------------
 
-const buildContainerHTML = (hasSparePieces: boolean) => `
+const buildContainerHTML = () => `
     <div class="${CSS.chessboard}">
-    ${
-      hasSparePieces
-        ? `<div class="${CSS.sparePieces} ${CSS.sparePiecesTop}"></div>`
-        : ``
-    }
-    <div class="${CSS.board}"></div>
-    ${
-      hasSparePieces
-        ? `<div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>`
-        : ``
-    }
+      <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}"></div>
+      <div class="${CSS.board}"></div>
+      <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>
     </div>`;
 
 // ---------------------------------------------------------------------------
@@ -151,9 +142,6 @@ const buildContainerHTML = (hasSparePieces: boolean) => `
 
 // validate config / set default options
 function expandConfig(config: Partial<Config>): Config {
-  // default for sparePieces is false
-  if (config.sparePieces !== true) config.sparePieces = false;
-
   // animation speeds
   if (!validAnimationSpeed(config.appearSpeed))
     config.appearSpeed = DEFAULT_APPEAR_SPEED;
@@ -257,6 +245,12 @@ export class ChessBoardElement extends UpdatingElement {
   @property({attribute: 'piece-theme'})
   pieceTheme: string | ((piece: string) => string) = wikipediaPiece;
 
+  @property({
+    attribute: 'spare-pieces',
+    type: Boolean,
+  })
+  sparePieces = false;
+
   private config: Config;
 
   // DOM elements
@@ -299,7 +293,7 @@ export class ChessBoardElement extends UpdatingElement {
     const config = (this.config = expandConfig({}));
 
     // draggable must be true if sparePieces is enabled
-    if (config.sparePieces) this.draggablePieces = true;
+    if (this.sparePieces) this.draggablePieces = true;
 
 
     // -------------------------------------------------------------------------
@@ -356,7 +350,7 @@ export class ChessBoardElement extends UpdatingElement {
 
     const mousedownSparePiece = (e: MouseEvent) => {
       // do nothing if sparePieces is not enabled
-      if (!config.sparePieces) {
+      if (!this.sparePieces) {
         return;
       }
       const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
@@ -367,7 +361,7 @@ export class ChessBoardElement extends UpdatingElement {
 
     const touchstartSparePiece = (e: TouchEvent) => {
       // do nothing if sparePieces is not enabled
-      if (!config.sparePieces) return;
+      if (!this.sparePieces) return;
 
       const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
       const piece = pieceEl!.getAttribute('data-piece');
@@ -601,11 +595,8 @@ export class ChessBoardElement extends UpdatingElement {
   // -------------------------------------------------------------------------
 
   private _initDOM() {
-    // create unique IDs for all the elements we will create
-    // this._createElIds();
-
     // build board and save it in memory
-    this._container.innerHTML = buildContainerHTML(this.config.sparePieces);
+    this._container.innerHTML = buildContainerHTML();
 
     this._board = this._container.querySelector('.' + CSS.board) as HTMLElement;
 
@@ -890,11 +881,6 @@ export class ChessBoardElement extends UpdatingElement {
         this.config.appearSpeed = newValue as any;
         this._drawBoard();
         break;
-      case 'spare-pieces':
-        this.config.sparePieces = newValue !== null;
-        this._initDOM();
-        this._drawBoard();
-        break;
       default:
         super.attributeChangedCallback(name, oldValue, newValue);
     }
@@ -908,7 +894,7 @@ export class ChessBoardElement extends UpdatingElement {
     this._board.innerHTML = this._buildBoardHTML(this.orientation);
     this._drawPositionInstant();
 
-    if (this.config.sparePieces) {
+    if (this.sparePieces) {
       if (this.orientation === 'white') {
         this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('black');
         this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML('white');
@@ -1373,7 +1359,7 @@ export class ChessBoardElement extends UpdatingElement {
         piece.addEventListener('transitionend', transitionEndListener);
 
         // add a piece with no spare pieces - fade the piece onto the square
-      } else if (animation.type === 'add' && !this.config.sparePieces) {
+      } else if (animation.type === 'add' && !this.sparePieces) {
         const square = this._getSquareElement(animation.square);
         square.insertAdjacentHTML(
           'beforeend',
@@ -1396,7 +1382,7 @@ export class ChessBoardElement extends UpdatingElement {
         }, 0);
 
         // add a piece with spare pieces - animate from the spares
-      } else if (animation.type === 'add' && this.config.sparePieces) {
+      } else if (animation.type === 'add' && this.sparePieces) {
         this._animateSparePieceToSquare(
           animation.piece,
           animation.square,
