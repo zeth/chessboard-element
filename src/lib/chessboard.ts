@@ -250,7 +250,12 @@ export class ChessBoardElement extends HTMLElement {
   private _draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
   private _draggedPieceSource: string | null = null;
   private _isDragging = false;
-  private _squareSize = 16;
+
+  private get _squareSize() {
+    // Note: this isn't cached, but is called during user interactions, so we
+    // have a bit of time to use under RAIL guidelines.
+    return this._container.offsetWidth / 8;
+  }
 
   constructor() {
     super();
@@ -854,9 +859,6 @@ export class ChessBoardElement extends HTMLElement {
   }
 
   resize() {
-    // calulate the new square size
-    this._squareSize = this._calculateSquareSize();
-
     // set board size
     this._board.style.width = this._squareSize * 8 + 'px';
     this._board.style.height = this._squareSize * 8 + 'px';
@@ -1308,20 +1310,6 @@ export class ChessBoardElement extends HTMLElement {
     } else if (action === 'drop') {
       this._dropDraggedPieceOnSquare(location);
     }
-  }
-
-  // -------------------------------------------------------------------------
-  // DOM Misc
-  // -------------------------------------------------------------------------
-
-  // calculates square size based on the width of the container
-  // got a little CSS black magic here, so let me explain:
-  // get the width of the container element (could be anything), reduce by 1 for
-  // fudge factor, and then keep reducing until we find an exact mod 8 for
-  // our square size
-  private _calculateSquareSize() {
-    const containerWidth = this._container.offsetWidth;
-    return containerWidth / 8;
   }
 
   // -------------------------------------------------------------------------
