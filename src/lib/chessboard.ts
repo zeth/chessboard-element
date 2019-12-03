@@ -214,6 +214,9 @@ const speedToMS = (speed: AnimationSpeed) => {
   return parseInt(speed, 10);
 };
 
+const squareId = (square: Location) => `square-${square}`;
+const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
+
 export class ChessBoardElement extends HTMLElement {
   static get observedAttributes() {
     return [
@@ -241,16 +244,12 @@ export class ChessBoardElement extends HTMLElement {
   _sparePiecesBottom!: HTMLElement | null;
   _container: HTMLElement;
 
-  boardBorderSize = 2;
   currentOrientation: SquareColor = 'white';
   currentPosition: PositionObject = {};
   draggedPiece: string | null = null;
   draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
   draggedPieceSource: string | null = null;
   isDragging = false;
-  sparePiecesElsIds: {[piece: string]: string} = {};
-  squareElsIds: {[square: string]: string} = {};
-  squareElsOffsets: {[square: string]: Offset} = {};
   squareSize = 16;
 
   constructor() {
@@ -581,35 +580,23 @@ export class ChessBoardElement extends HTMLElement {
     setInitialState();
     this._initDOM();
     addEvents();
-  } // end constructor
+  }
+
+  private _getSquareElement(square: Location): HTMLElement {
+    return this.shadowRoot!.getElementById(squareId(square))!;
+  }
+
+  private _getSparePieceElement(piece: Piece): HTMLElement {
+    return this.shadowRoot!.getElementById(sparePieceId(piece))!;
+  }
 
   // -------------------------------------------------------------------------
   // Markup Building
   // -------------------------------------------------------------------------
 
-  // create random IDs for elements
-  _createElIds() {
-    // squares on the board
-    for (let i = 0; i < COLUMNS.length; i++) {
-      for (let j = 1; j <= 8; j++) {
-        const square = COLUMNS[i] + j;
-        this.squareElsIds[square] = square + '-' + uuid();
-      }
-    }
-
-    // spare pieces
-    const pieces = 'KQRNBP'.split('');
-    for (let i = 0; i < pieces.length; i++) {
-      const whitePiece = 'w' + pieces[i];
-      const blackPiece = 'b' + pieces[i];
-      this.sparePiecesElsIds[whitePiece] = whitePiece + '-' + uuid();
-      this.sparePiecesElsIds[blackPiece] = blackPiece + '-' + uuid();
-    }
-  }
-
   _initDOM() {
     // create unique IDs for all the elements we will create
-    this._createElIds();
+    // this._createElIds();
 
     // build board and save it in memory
     this._container.innerHTML = buildContainerHTML(this.config.sparePieces);
@@ -621,12 +608,6 @@ export class ChessBoardElement extends HTMLElement {
     );
     this._sparePiecesBottom = this._container.querySelector(
       '.' + CSS.sparePiecesBottom
-    );
-
-    // get the border size
-    this.boardBorderSize = parseInt(
-      getComputedStyle(this._board)['borderLeftWidth'],
-      10
     );
 
     // set the size and draw the board
@@ -682,7 +663,7 @@ export class ChessBoardElement extends HTMLElement {
 
         html +=
           `<div class="${CSS.square} ${CSS[squareColor]} square-${square}" ` +
-          `id="${this.squareElsIds[square]}" ` +
+          `id="${squareId(square)}" ` +
           `data-square="${square}" ` +
           `part="${square} ${squareColor}" ` +
           '>';
@@ -730,7 +711,7 @@ export class ChessBoardElement extends HTMLElement {
       html += `<div>${this.buildPieceHTML(
         pieces[i],
         false,
-        this.sparePiecesElsIds[pieces[i]]
+        sparePieceId(pieces[i])
       )}</div>`;
     }
     html += '<div></div>';
@@ -1035,47 +1016,16 @@ export class ChessBoardElement extends HTMLElement {
         continue;
       }
       const pieceHTML = this.buildPieceHTML(this.currentPosition[i]);
-      const square = this.shadowRoot!.querySelector(
-        '#' + this.squareElsIds[i]
-      )!;
+      const square = this._getSquareElement(i);
       square.insertAdjacentHTML('beforeend', pieceHTML);
     }
   }
 
-  isXYOnSquare(x: number, y: number) {
-    for (const [square, offset] of Object.entries(this.squareElsOffsets)) {
-      if (
-        x >= offset.left &&
-        x < offset.left + this.squareSize &&
-        y >= offset.top &&
-        y < offset.top + this.squareSize
-      ) {
-        return square;
-      }
-    }
-
-    return 'offboard';
-  }
-
-  // records the XY coords of every square into memory
-  captureSquareOffsets() {
-    this.squareElsOffsets = {};
-
-    for (const i in this.squareElsIds) {
-      if (!this.squareElsIds.hasOwnProperty(i)) {
-        continue;
-      }
-
-      const square = this.shadowRoot!.querySelector(
-        `#${this.squareElsIds[i]}`
-      )!;
-      const rect = square.getBoundingClientRect();
-      // emulates jQuery's offset()
-      this.squareElsOffsets[i] = {
-        top: rect.top + document.body.scrollTop,
-        left: rect.left + document.body.scrollLeft,
-      };
-    }
+  isXYOnSquare(x: number, y: number): Location | 'offboard' {
+    // TODO: test that this works with the polyfill
+    const elements = this.shadowRoot!.elementsFromPoint(x, y);
+    const square = elements.find((e) => e.classList.contains('square'));
+    return square === undefined ? 'offboard' : (square.getAttribute('data-square') as Location);
   }
 
   removeSquareHighlights() {
@@ -1116,9 +1066,7 @@ export class ChessBoardElement extends HTMLElement {
     };
 
     // get source square position
-    const square = this.shadowRoot!.querySelector(
-      `#${this.squareElsIds[this.draggedPieceSource!]}`
-    )!;
+    const square = this._getSquareElement(this.draggedPieceSource!);
     const rect = square.getBoundingClientRect();
 
     // animate the piece to the target square
@@ -1164,9 +1112,7 @@ export class ChessBoardElement extends HTMLElement {
     this.setCurrentPosition(newPosition);
 
     // get target square information
-    const targetSquare = this.shadowRoot!.querySelector(
-      `#${this.squareElsIds[square]}`
-    )!;
+    const targetSquare = this._getSquareElement(square);
     const rect = targetSquare.getBoundingClientRect();
 
     // animation complete
@@ -1237,9 +1183,6 @@ export class ChessBoardElement extends HTMLElement {
       this.draggedPieceLocation = source;
     }
 
-    // capture the x, y coords of all squares in memory
-    this.captureSquareOffsets();
-
     // create the dragged piece
     this._draggedPiece.setAttribute('src', this.buildPieceImgSrc(piece!));
     this._draggedPiece.style.opacity = '1';
@@ -1250,13 +1193,10 @@ export class ChessBoardElement extends HTMLElement {
 
     if (source !== 'spare') {
       // highlight the source square and hide the piece
-      const sourceSquare = this.shadowRoot!.querySelector(
-        `#${this.squareElsIds[source]}`
-      )!;
+      const sourceSquare = this._getSquareElement(source);
       sourceSquare.classList.add(CSS.highlight1);
-      const pieces = sourceSquare.querySelectorAll(
-        '.' + CSS.piece
-      );
+      // TODO: there can only be one piece per square, why is the qSA()?
+      const pieces = sourceSquare.querySelectorAll('.' + CSS.piece);
       (pieces as NodeListOf<HTMLElement>).forEach((piece) => {
         piece.style.display = 'none';
       });
@@ -1278,17 +1218,13 @@ export class ChessBoardElement extends HTMLElement {
 
     // remove highlight from previous square
     if (validSquare(this.draggedPieceLocation)) {
-      const previousSquare = this.shadowRoot!.querySelector(
-        '#' + this.squareElsIds[this.draggedPieceLocation]
-      )!;
+      const previousSquare = this._getSquareElement(this.draggedPieceLocation);
       previousSquare.classList.remove(CSS.highlight2);
     }
 
     // add highlight to new square
     if (validSquare(location)) {
-      const locationSquare = this.shadowRoot!.querySelector(
-        '#' + this.squareElsIds[location]
-      )!;
+      const locationSquare = this._getSquareElement(location);
       locationSquare.classList.add(CSS.highlight2);
     }
 
@@ -1386,21 +1322,6 @@ export class ChessBoardElement extends HTMLElement {
   calculateSquareSize() {
     const containerWidth = this._container.offsetWidth;
     return containerWidth / 8;
-    // console.log({containerWidth});
-
-    // // defensive, prevent infinite loop
-    // if (!containerWidth || containerWidth <= 0) {
-    //   return 0;
-    // }
-
-    // // pad one pixel
-    // let boardWidth = containerWidth - 1;
-
-    // while (boardWidth % 8 !== 0 && boardWidth > 0) {
-    //   boardWidth = boardWidth - 1;
-    // }
-
-    // return boardWidth / 8;
   }
 
   // -------------------------------------------------------------------------
@@ -1515,9 +1436,8 @@ export class ChessBoardElement extends HTMLElement {
     for (const animation of animations) {
       // clear a piece
       if (animation.type === 'clear') {
-        const piece = this.shadowRoot!.querySelector(
-          '#' + this.squareElsIds[animation.square] + ' .' + CSS.piece
-        ) as HTMLElement;
+        const square = this._getSquareElement(animation.square);
+        const piece = square.querySelector(` .${CSS.piece}`) as HTMLElement;
         piece.style.transitionProperty = 'opacity';
         piece.style.transitionDuration = `${speedToMS(
           this.config.trashSpeed
@@ -1531,9 +1451,7 @@ export class ChessBoardElement extends HTMLElement {
 
         // add a piece with no spare pieces - fade the piece onto the square
       } else if (animation.type === 'add' && !this.config.sparePieces) {
-        const square = this.shadowRoot!.querySelector(
-          '#' + this.squareElsIds[animation.square]
-        ) as HTMLElement;
+        const square = this._getSquareElement(animation.square);
         square.insertAdjacentHTML(
           'beforeend',
           this.buildPieceHTML(animation.piece)
@@ -1579,13 +1497,9 @@ export class ChessBoardElement extends HTMLElement {
     dest: Location,
     completeFn: Function
   ) {
-    const srcSquare = this.shadowRoot!.querySelector(
-      '#' + this.sparePiecesElsIds[piece]
-    ) as HTMLElement;
+    const srcSquare = this._getSparePieceElement(piece);
     const srcRect = srcSquare.getBoundingClientRect();
-    const destSquare = this.shadowRoot!.querySelector(
-      '#' + this.squareElsIds[dest]
-    ) as HTMLElement;
+    const destSquare = this._getSquareElement(dest);
     const destRect = destSquare.getBoundingClientRect();
 
     // create the animate piece
@@ -1641,13 +1555,9 @@ export class ChessBoardElement extends HTMLElement {
     completeFn: Function
   ) {
     // get information about the source and destination squares
-    const srcSquare = this.shadowRoot!.querySelector(
-      '#' + this.squareElsIds[src]
-    ) as HTMLElement;
+    const srcSquare = this._getSquareElement(src);
     const srcSquareRect = srcSquare.getBoundingClientRect();
-    const destSquare = this.shadowRoot!.querySelector(
-      '#' + this.squareElsIds[dest]
-    ) as HTMLElement;
+    const destSquare = this._getSquareElement(dest);
     const destSquareRect = destSquare.getBoundingClientRect();
 
     // create the animated piece and absolutely position it
