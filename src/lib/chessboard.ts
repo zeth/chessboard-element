@@ -109,17 +109,6 @@ function isTouchDevice() {
   return 'ontouchstart' in document.documentElement;
 }
 
-// ---------------------------------------------------------------------------
-// HTML
-// ---------------------------------------------------------------------------
-
-const buildContainerHTML = () => `
-    <div class="${CSS.chessboard}">
-      <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}"></div>
-      <div class="${CSS.board}"></div>
-      <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>
-    </div>`;
-
 const speedToMS = (speed: AnimationSpeed) => {
   if (typeof speed === 'number') {
     return speed;
@@ -226,7 +215,7 @@ export class ChessBoardElement extends UpdatingElement {
   private _draggedPieceElement!: HTMLElement;
   private _sparePiecesTop!: HTMLElement | null;
   private _sparePiecesBottom!: HTMLElement | null;
-  private _container: HTMLElement;
+  private _animatedPieces: HTMLElement;
 
   private _currentPosition: PositionObject = {};
   private _draggedPiece: string | null = null;
@@ -237,7 +226,7 @@ export class ChessBoardElement extends UpdatingElement {
   private get _squareSize() {
     // Note: this isn't cached, but is called during user interactions, so we
     // have a bit of time to use under RAIL guidelines.
-    return this._container.offsetWidth / 8;
+    return this.offsetWidth / 8;
   }
 
   constructor() {
@@ -245,17 +234,26 @@ export class ChessBoardElement extends UpdatingElement {
     this.attachShadow({mode: 'open'});
     this.shadowRoot!.innerHTML = `
       <style>
-        :host {
-          display: block;
-        }
         ${styles}
       </style>
-      <div id="container"></div>
+      <div class="${CSS.chessboard}">
+        <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}"></div>
+        <div class="${CSS.board}"></div>
+        <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>
+      </div>
+      <div id="animated-pieces"></div>
     `;
 
-    this._container = this.shadowRoot!.querySelector(
-      '#container'
+    this._animatedPieces = this.shadowRoot!.querySelector(
+      '#animated-pieces'
     ) as HTMLElement;
+    this._board = this.shadowRoot!.querySelector('.' + CSS.board) as HTMLElement;
+    this._sparePiecesTop = this.shadowRoot!.querySelector(
+      '.' + CSS.sparePiecesTop
+    );
+    this._sparePiecesBottom = this.shadowRoot!.querySelector(
+      '.' + CSS.sparePiecesBottom
+    );
 
     // draggable must be true if sparePieces is enabled
     if (this.sparePieces) this.draggablePieces = true;
@@ -513,13 +511,13 @@ export class ChessBoardElement extends UpdatingElement {
             touchstartSquare(e);
           }
         });
-        this._container.addEventListener('touchstart', (e) => {
+        this.shadowRoot!.addEventListener('touchstart', (e) => {
           if (
             (e.target as HTMLElement).closest(
               '.' + CSS.sparePieces + ' .' + CSS.piece
             )
           ) {
-            touchstartSparePiece(e);
+            touchstartSparePiece(e as TouchEvent);
           }
         });
 
@@ -532,8 +530,8 @@ export class ChessBoardElement extends UpdatingElement {
     // Initialization
     // -------------------------------------------------------------------------
 
-    this._initDOM();
     addEvents();
+    this.resize();
   }
 
   private _getSquareElement(square: Location): HTMLElement {
@@ -547,23 +545,6 @@ export class ChessBoardElement extends UpdatingElement {
   // -------------------------------------------------------------------------
   // Markup Building
   // -------------------------------------------------------------------------
-
-  private _initDOM() {
-    // build board and save it in memory
-    this._container.innerHTML = buildContainerHTML();
-
-    this._board = this._container.querySelector('.' + CSS.board) as HTMLElement;
-
-    this._sparePiecesTop = this._container.querySelector(
-      '.' + CSS.sparePiecesTop
-    );
-    this._sparePiecesBottom = this._container.querySelector(
-      '.' + CSS.sparePiecesBottom
-    );
-
-    // set the size and draw the board
-    this.resize();
-  }
 
   private _buildPieceImgSrc(piece: string) {
     if (isFunction(this.pieceTheme)) {
@@ -795,7 +776,7 @@ export class ChessBoardElement extends UpdatingElement {
     // create the drag piece
     const draggedPieceId = uuid();
 
-    this._container.insertAdjacentHTML(
+    this._animatedPieces.insertAdjacentHTML(
       'beforeend',
       this._buildPieceHTML('wP', true, draggedPieceId)
     );
@@ -1354,7 +1335,7 @@ export class ChessBoardElement extends UpdatingElement {
 
     // create the animate piece
     const pieceId = uuid();
-    this._container.insertAdjacentHTML(
+    this._animatedPieces.insertAdjacentHTML(
       'beforeend',
       this._buildPieceHTML(piece, true, pieceId)
     );
@@ -1411,7 +1392,7 @@ export class ChessBoardElement extends UpdatingElement {
     // create the animated piece and absolutely position it
     // over the source square
     const animatedPieceId = uuid();
-    this._container.insertAdjacentHTML(
+    this._animatedPieces.insertAdjacentHTML(
       'beforeend',
       this._buildPieceHTML(piece, true, animatedPieceId)
     );

@@ -1,6 +1,9 @@
 /*! chessboard.js v@VERSION | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
 
 export const styles = `
+  :host {
+    display: block;
+  }
   .board {
     border: 2px solid #404040;
     box-sizing: border-box;
