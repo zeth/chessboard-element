@@ -255,16 +255,13 @@ export class ChessBoardElement extends UpdatingElement {
       '.' + CSS.sparePiecesBottom
     );
 
-    // draggable must be true if sparePieces is enabled
-    if (this.sparePieces) this.draggablePieces = true;
-
     // -------------------------------------------------------------------------
     // Browser Events
     // -------------------------------------------------------------------------
 
     const mousedownSquare = (e: MouseEvent) => {
-      // do nothing if we're not draggable
-      if (!this.draggablePieces) {
+      // do nothing if we're not draggable. sparePieces implies draggable
+      if (!this.draggablePieces && !this.sparePieces) {
         return;
       }
 
@@ -286,8 +283,8 @@ export class ChessBoardElement extends UpdatingElement {
     };
 
     const touchstartSquare = (e: TouchEvent) => {
-      // do nothing if we're not draggable
-      if (!this.draggablePieces) {
+      // do nothing if we're not draggable. sparePieces implies draggable
+      if (!this.draggablePieces && !this.sparePieces) {
         return;
       }
 
