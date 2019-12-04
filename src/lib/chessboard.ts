@@ -965,6 +965,8 @@ export class ChessBoardElement extends UpdatingElement {
 
       this._drawPositionInstant();
       this._draggedPieceElement.style.display = 'none';
+      this._draggedPieceElement.style.transitionProperty = '';
+      this._draggedPieceElement.style.transitionDuration = '0ms';
 
       // Fire the snap-end event
       this.dispatchEvent(
