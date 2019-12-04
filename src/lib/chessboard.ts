@@ -6,11 +6,17 @@
 // https://github.com/oakmac/chessboardjs/blob/master/LICENSE.md
 
 import {
-  UpdatingElement,
   customElement,
   property,
   PropertyValues,
+  LitElement,
+  html,
+  query,
 } from 'lit-element';
+import {classMap} from 'lit-html/directives/class-map.js';
+import {styleMap, StyleInfo} from 'lit-html/directives/style-map.js';
+import {ifDefined} from 'lit-html/directives/if-defined.js';
+import {nothing} from 'lit-html';
 
 import {
   uuid,
@@ -33,6 +39,7 @@ import {
   Piece,
   COLUMNS,
   normalizePozition,
+  getSquareColor,
 } from './chess-utils.js';
 
 // ---------------------------------------------------------------------------
@@ -40,17 +47,16 @@ import {
 // ---------------------------------------------------------------------------
 
 // default animation speeds
-const DEFAULT_APPEAR_SPEED = 200;
-const DEFAULT_MOVE_SPEED = 200;
+const DEFAULT_APPEAR_SPEED = 600; // 200;
+const DEFAULT_MOVE_SPEED = 600; //200;
 const DEFAULT_SNAPBACK_SPEED = 60;
 const DEFAULT_SNAP_SPEED = 30;
-const DEFAULT_TRASH_SPEED = 100;
+const DEFAULT_TRASH_SPEED = 600; //100;
 
 const CSS = {
   alpha: 'alpha',
   black: 'black',
   board: 'board',
-  chessboard: 'chessboard',
   highlight1: 'highlight1',
   highlight2: 'highlight2',
   notation: 'notation',
@@ -85,6 +91,13 @@ export type Animation =
       square?: undefined;
     }
   | {
+    type: 'move-start';
+    source: string;
+    destination: string;
+    piece: string;
+    square?: undefined;
+  }
+  | {
       type: 'add';
       square: string;
       piece: string;
@@ -93,7 +106,12 @@ export type Animation =
       type: 'clear';
       square: string;
       piece: string;
-    };
+    }
+  | {
+    type: 'add-start',
+    square: string;
+    piece: string;
+  };
 
 // ---------------------------------------------------------------------------
 // Predicates
@@ -127,7 +145,7 @@ const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
 const wikipediaPiece = (p: string) => `img/chesspieces/wikipedia/${p}.png`;
 
 @customElement('chess-board')
-export class ChessBoardElement extends UpdatingElement {
+export class ChessBoardElement extends LitElement {
   /**
    * The current position of the board, as a `PositionObject`. This property may
    * be set externally, but only to valid `PositionObject`s. The value is copied
@@ -210,12 +228,23 @@ export class ChessBoardElement extends UpdatingElement {
   })
   sparePieces = false;
 
-  // DOM elements
+  @query('.' + CSS.board)
   private _board!: HTMLElement;
-  private _draggedPieceElement!: HTMLElement;
+
+  @query('.' + CSS.sparePiecesTop)
   private _sparePiecesTop!: HTMLElement | null;
+
+  @query('.' + CSS.sparePiecesBottom)
   private _sparePiecesBottom!: HTMLElement | null;
-  private _animatedPieces: HTMLElement;
+
+  @query('#animated-pieces')
+  private _animatedPieces!: HTMLElement;
+
+
+  private _highlightedSquares = new Set();
+  private _draggedPieceElement!: HTMLElement;
+
+  private _animations = new Map<Location, Animation>();
 
   private _currentPosition: PositionObject = {};
   private _draggedPiece: string | null = null;
@@ -231,29 +260,6 @@ export class ChessBoardElement extends UpdatingElement {
 
   constructor() {
     super();
-    this.attachShadow({mode: 'open'});
-    this.shadowRoot!.innerHTML = `
-      <style>
-        ${styles}
-      </style>
-      <div class="${CSS.chessboard}">
-        <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}"></div>
-        <div class="${CSS.board}"></div>
-        <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>
-      </div>
-      <div id="animated-pieces"></div>
-    `;
-
-    this._animatedPieces = this.shadowRoot!.querySelector(
-      '#animated-pieces'
-    ) as HTMLElement;
-    this._board = this.shadowRoot!.querySelector('.' + CSS.board) as HTMLElement;
-    this._sparePiecesTop = this.shadowRoot!.querySelector(
-      '.' + CSS.sparePiecesTop
-    );
-    this._sparePiecesBottom = this.shadowRoot!.querySelector(
-      '.' + CSS.sparePiecesBottom
-    );
 
     // -------------------------------------------------------------------------
     // Browser Events
@@ -276,7 +282,7 @@ export class ChessBoardElement extends UpdatingElement {
       }
       this._beginDraggingPiece(
         square,
-        this._currentPosition[square],
+        this._currentPosition[square]!,
         e.pageX,
         e.pageY
       );
@@ -301,7 +307,7 @@ export class ChessBoardElement extends UpdatingElement {
       e = (e as any).originalEvent;
       this._beginDraggingPiece(
         square,
-        this._currentPosition[square],
+        this._currentPosition[square]!,
         e.changedTouches[0].pageX,
         e.changedTouches[0].pageY
       );
@@ -403,7 +409,7 @@ export class ChessBoardElement extends UpdatingElement {
       let piece: string | false = false;
 
       if (this._currentPosition.hasOwnProperty(square)) {
-        piece = this._currentPosition[square];
+        piece = this._currentPosition[square]!;
       }
 
       this.dispatchEvent(
@@ -440,7 +446,7 @@ export class ChessBoardElement extends UpdatingElement {
       let piece: string | false = false;
 
       if (this._currentPosition.hasOwnProperty(square)) {
-        piece = this._currentPosition[square];
+        piece = this._currentPosition[square]!;
       }
 
       // execute their function
@@ -528,7 +534,6 @@ export class ChessBoardElement extends UpdatingElement {
     // -------------------------------------------------------------------------
 
     addEvents();
-    this.resize();
   }
 
   private _getSquareElement(square: Location): HTMLElement {
@@ -542,6 +547,123 @@ export class ChessBoardElement extends UpdatingElement {
   // -------------------------------------------------------------------------
   // Markup Building
   // -------------------------------------------------------------------------
+
+  render() {
+    return html`
+      <style>
+        ${styles}
+      </style>
+      <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}"></div>
+      <div class="${CSS.board}">${this._renderBoard()}</div>
+      <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>
+      <div id="animated-pieces"></div>
+    `;
+  }
+
+  private _renderBoard() {
+    const results = [];
+    const isFlipped = this.orientation === 'black';
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const file = COLUMNS[isFlipped ? 7 - col : col];
+        const rank = isFlipped ? row + 1 : 8 - row;
+        const square = `${file}${rank}`;
+        const squareColor = getSquareColor(square);
+        const piece = this._currentPosition[square];
+        const isDragSource = square === this._draggedPieceSource;
+        const animation = this._animations.get(square);
+        const classes = {
+          [squareColor]: true,
+          [`square-${square}`]: true,
+          [CSS.highlight1]: isDragSource,
+          [CSS.highlight2]: this._highlightedSquares.has(square),
+        };
+        results.push(html`
+          <div
+              class="square ${classMap(classes)}"
+              id="${squareId(square)}"
+              data-square="${square}"
+              part="${square} ${squareColor}">
+            ${this.showNotation && row === 7 ? 
+              html`<div class="notation alpha">${file}</div>`: nothing}
+            ${this.showNotation && col === 0 ? 
+              html`<div class="notation numeric">${rank}</div>`: nothing}
+            ${this._renderPiece(piece, animation, isDragSource)}
+          </div>
+        `);
+      }
+    }
+    return results;
+  }
+
+  _renderPiece(piece: Piece|undefined, animation: Animation|undefined, isDragSource: boolean) {
+    if (isDragSource) {
+      return nothing;
+    }
+
+    const style: Partial<CSSStyleDeclaration> = {
+      opacity: '1',
+      transitionProperty: '',
+      transitionDuration: '0ms',
+    };
+
+    if (animation) {
+      if (piece && (animation.type === 'move-start' || (animation.type === 'add-start' && this.draggablePieces))) {
+        // Position the moved piece absolutely at the source
+        const srcSquare = animation.type === 'move-start'
+            ? this._getSquareElement(animation.source)
+            : this._getSparePieceElement(piece);
+        const destSquare = animation.type === 'move-start'
+            ? this._getSquareElement(animation.destination)
+            : this._getSquareElement(animation.square);
+
+        const srcSquareRect = srcSquare.getBoundingClientRect();
+        const destSquareRect = destSquare.getBoundingClientRect();
+
+        style.position = 'absolute';
+        style.left = `${srcSquareRect.left - destSquareRect.left}px`;
+        style.top = `${srcSquareRect.top - destSquareRect.top}px`;
+        style.width = `${this._squareSize}px`;
+        style.height = `${this._squareSize}px`;
+      } else if (piece && (animation.type === 'move' || (animation.type === 'add' && this.draggablePieces))) {
+        // Transition the moved piece to the destination
+        style.position = 'absolute';
+        style.transitionProperty = 'top, left';
+        style.transitionDuration = `${speedToMS(this.moveSpeed)}ms`;
+        // style.top = `${destSquareRect.top}px`;
+        // style.left = `${destSquareRect.left}px`;
+        style.top = `0`;
+        style.left = `0`;
+        style.width = `${this._squareSize}px`;
+        style.height = `${this._squareSize}px`;
+      } else if (!piece && animation.type === 'clear') {
+        // Preserve and transition a removed piece to opacity 0
+        piece = animation.piece;
+        style.transitionProperty = 'opacity';
+        style.transitionDuration = `${speedToMS(this.trashSpeed)}ms`;
+        style.opacity = '0';
+      } else if (piece && animation.type === 'add-start') {
+        // Initialize an added piece to opacity 0
+        style.opacity = '0';
+      } else if (piece && animation.type === 'add') {
+        // Transition an added piece to opacity 1
+        style.transitionProperty = 'opacity';
+        style.transitionDuration = `${speedToMS(this.appearSpeed)}ms`;
+      }
+    }
+
+    if (piece === undefined) {
+      return nothing;
+    }
+
+    return html`
+      <img
+        src="${this._buildPieceImgSrc(piece)}"
+        class="${CSS.piece}"
+        data-piece="${piece}"
+        style="${styleMap(style as StyleInfo)}"
+      >`;
+  }
 
   private _buildPieceImgSrc(piece: string) {
     if (isFunction(this.pieceTheme)) {
@@ -558,6 +680,8 @@ export class ChessBoardElement extends UpdatingElement {
   }
 
   private _buildPieceHTML(piece: string, hidden?: boolean, id?: string) {
+    const fadingIng = false;
+
     return `
       <img
         src="${this._buildPieceImgSrc(piece)}"
@@ -567,66 +691,6 @@ export class ChessBoardElement extends UpdatingElement {
         data-piece="${piece}"
         style="${hidden ? `display:none;` : ``}"
       >`;
-  }
-
-  private _buildBoardHTML(orientation: SquareColor) {
-    if (orientation !== 'black') {
-      orientation = 'white';
-    }
-
-    let html = '';
-
-    // algebraic notation / orientation
-    const alpha = deepCopy(COLUMNS);
-    let row = 8;
-    if (orientation === 'black') {
-      alpha.reverse();
-      row = 1;
-    }
-
-    let squareColor: SquareColor = 'white';
-    for (let i = 0; i < 8; i++) {
-      // html += `<div class="${CSS.row}">`;
-      for (let j = 0; j < 8; j++) {
-        const square = alpha[j] + row;
-
-        html +=
-          `<div class="${CSS.square} ${CSS[squareColor]} square-${square}" ` +
-          `id="${squareId(square)}" ` +
-          `data-square="${square}" ` +
-          `part="${square} ${squareColor}" ` +
-          '>';
-
-        if (this.showNotation) {
-          // alpha notation
-          if (
-            (orientation === 'white' && row === 1) ||
-            (orientation === 'black' && row === 8)
-          ) {
-            html += `<div class="${CSS.notation} ${CSS.alpha}">${alpha[j]}</div>`;
-          }
-
-          // numeric notation
-          if (j === 0) {
-            html += `<div class="${CSS.notation} ${CSS.numeric}">${row}</div>`;
-          }
-        }
-
-        html += '</div>'; // end .square
-
-        squareColor = squareColor === 'white' ? 'black' : 'white';
-      }
-
-      squareColor = squareColor === 'white' ? 'black' : 'white';
-
-      if (orientation === 'white') {
-        row = row - 1;
-      } else {
-        row = row + 1;
-      }
-    }
-
-    return html;
   }
 
   private _buildSparePiecesHTML(color: SquareColor) {
@@ -679,10 +743,11 @@ export class ChessBoardElement extends UpdatingElement {
 
       // set the new position
       this._setCurrentPosition(position);
+      this.requestUpdate();
     } else {
       // instant update
       this._setCurrentPosition(position);
-      this._drawPositionInstant();
+      this.requestUpdate();
     }
   }
 
@@ -761,15 +826,7 @@ export class ChessBoardElement extends UpdatingElement {
   // Lifecycle Callbacks
   // -------------------------------------------------------------------------
 
-  update(changedProperties: PropertyValues) {
-    super.update(changedProperties);
-    // TODO: call this._drawPositionInstant() most of the time so we don't
-    // redraw the board unnecessarily.
-    this._drawBoard();
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
+  firstUpdated() {
     // create the drag piece
     const draggedPieceId = uuid();
 
@@ -779,15 +836,15 @@ export class ChessBoardElement extends UpdatingElement {
     );
     this._draggedPieceElement = this.shadowRoot!.getElementById(
       draggedPieceId
-    )!;
-
+    )!;    
     this.resize();
   }
 
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    // remove the drag piece from the page
-    this._draggedPieceElement.remove();
+  update(changedProperties: PropertyValues) {
+    super.update(changedProperties);
+    // TODO: call this._drawPositionInstant() most of the time so we don't
+    // redraw the board unnecessarily.
+    this._drawBoard();
   }
 
   // -------------------------------------------------------------------------
@@ -795,9 +852,6 @@ export class ChessBoardElement extends UpdatingElement {
   // -------------------------------------------------------------------------
 
   private _drawBoard() {
-    this._board.innerHTML = this._buildBoardHTML(this.orientation);
-    this._drawPositionInstant();
-
     if (this.sparePieces) {
       if (this.orientation === 'white') {
         this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('black');
@@ -837,24 +891,6 @@ export class ChessBoardElement extends UpdatingElement {
     this._currentPosition = position;
   }
 
-  private _drawPositionInstant() {
-    // clear the board
-    const pieces = this._board.querySelectorAll('.' + CSS.piece);
-    for (const piece of Array.from(pieces)) {
-      piece.remove();
-    }
-
-    // add the pieces
-    for (const i in this._currentPosition) {
-      if (!this._currentPosition.hasOwnProperty(i)) {
-        continue;
-      }
-      const pieceHTML = this._buildPieceHTML(this._currentPosition[i]);
-      const square = this._getSquareElement(i);
-      square.insertAdjacentHTML('beforeend', pieceHTML);
-    }
-  }
-
   private _isXYOnSquare(x: number, y: number): Location | 'offboard' {
     // TODO: test that this works with the polyfill
     const elements = this.shadowRoot!.elementsFromPoint(x, y);
@@ -864,12 +900,18 @@ export class ChessBoardElement extends UpdatingElement {
       : (square.getAttribute('data-square') as Location);
   }
 
-  private _removeSquareHighlights() {
-    const squares = this.shadowRoot!.querySelectorAll('.' + CSS.square);
-    for (const square of Array.from(squares)) {
-      square.classList.remove(CSS.highlight1);
-      square.classList.remove(CSS.highlight2);
+  private _highlightSquare(square: Location, value = true) {
+    if (value) {
+      this._highlightedSquares.add(square);
+    } else {
+      this._highlightedSquares.delete(square);
     }
+    this.requestUpdate('_highlightedSquares');
+  }
+
+  private _removeSquareHighlights() {
+    this._highlightedSquares.clear();
+    this.requestUpdate('_highlightedSquares');
   }
 
   private _snapbackDraggedPiece() {
@@ -885,7 +927,7 @@ export class ChessBoardElement extends UpdatingElement {
     const complete = () => {
       this._draggedPieceElement.removeEventListener('transitionend', complete);
 
-      this._drawPositionInstant();
+      this.requestUpdate();
       this._draggedPieceElement.style.display = 'none';
 
       this.dispatchEvent(
@@ -927,7 +969,7 @@ export class ChessBoardElement extends UpdatingElement {
     this._setCurrentPosition(newPosition);
 
     // redraw the position
-    this._drawPositionInstant();
+    this.requestUpdate();
 
     // hide the dragged piece
     this._draggedPieceElement.style.transitionProperty = 'opacity';
@@ -941,6 +983,7 @@ export class ChessBoardElement extends UpdatingElement {
   }
 
   private _dropDraggedPieceOnSquare(square: string) {
+    console.log('_dropDraggedPieceOnSquare', square)
     this._removeSquareHighlights();
 
     // update position
@@ -960,7 +1003,7 @@ export class ChessBoardElement extends UpdatingElement {
         onAnimationComplete
       );
 
-      this._drawPositionInstant();
+      this.requestUpdate();
       this._draggedPieceElement.style.display = 'none';
       this._draggedPieceElement.style.transitionProperty = '';
       this._draggedPieceElement.style.transitionDuration = '0ms';
@@ -980,7 +1023,7 @@ export class ChessBoardElement extends UpdatingElement {
 
     // snap the piece to the target square
     this._draggedPieceElement.style.transitionProperty = 'top, left';
-    this._draggedPieceElement.style.transitionDuration = `${this.snapbackSpeed}ms`;
+    this._draggedPieceElement.style.transitionDuration = `${this.snapSpeed}ms`;
     this._draggedPieceElement.style.top = `${rect.top +
       document.body.scrollTop}px`;
     this._draggedPieceElement.style.left = `${rect.left +
@@ -1039,16 +1082,7 @@ export class ChessBoardElement extends UpdatingElement {
     this._draggedPieceElement.style.left = `${x - this._squareSize / 2}px`;
     this._draggedPieceElement.style.top = `${y - this._squareSize / 2}px`;
 
-    if (source !== 'spare') {
-      // highlight the source square and hide the piece
-      const sourceSquare = this._getSquareElement(source);
-      sourceSquare.classList.add(CSS.highlight1);
-      // TODO: there can only be one piece per square, why is the qSA()?
-      const pieces = sourceSquare.querySelectorAll('.' + CSS.piece);
-      (pieces as NodeListOf<HTMLElement>).forEach((piece) => {
-        piece.style.display = 'none';
-      });
-    }
+    this.requestUpdate();
   }
 
   private _updateDraggedPiece(x: number, y: number) {
@@ -1066,14 +1100,12 @@ export class ChessBoardElement extends UpdatingElement {
 
     // remove highlight from previous square
     if (validSquare(this._draggedPieceLocation)) {
-      const previousSquare = this._getSquareElement(this._draggedPieceLocation);
-      previousSquare.classList.remove(CSS.highlight2);
+      this._highlightSquare(this._draggedPieceLocation, false);
     }
 
     // add highlight to new square
     if (validSquare(location)) {
-      const locationSquare = this._getSquareElement(location);
-      locationSquare.classList.add(CSS.highlight2);
+      this._highlightSquare(location);
     }
 
     this.dispatchEvent(
@@ -1153,6 +1185,11 @@ export class ChessBoardElement extends UpdatingElement {
     } else if (action === 'drop') {
       this._dropDraggedPieceOnSquare(location);
     }
+
+    // clear state
+    this._isDragging = false;
+    this._draggedPiece = null;
+    this._draggedPieceSource = null;
   }
 
   // -------------------------------------------------------------------------
@@ -1186,13 +1223,13 @@ export class ChessBoardElement extends UpdatingElement {
     for (const i in pos2) {
       if (!pos2.hasOwnProperty(i)) continue;
 
-      const closestPiece = findClosestPiece(pos1, pos2[i], i);
+      const closestPiece = findClosestPiece(pos1, pos2[i]!, i);
       if (closestPiece) {
         animations.push({
           type: 'move',
           source: closestPiece,
           destination: i,
-          piece: pos2[i],
+          piece: pos2[i]!,
         });
 
         delete pos1[closestPiece];
@@ -1210,7 +1247,7 @@ export class ChessBoardElement extends UpdatingElement {
       animations.push({
         type: 'add',
         square: i,
-        piece: pos2[i],
+        piece: pos2[i]!,
       });
 
       delete pos2[i];
@@ -1227,7 +1264,7 @@ export class ChessBoardElement extends UpdatingElement {
       animations.push({
         type: 'clear',
         square: i,
-        piece: pos1[i],
+        piece: pos1[i]!,
       });
 
       delete pos1[i];
@@ -1237,7 +1274,7 @@ export class ChessBoardElement extends UpdatingElement {
   }
 
   // execute an array of animations
-  private _doAnimations(
+  private async _doAnimations(
     animations: Animation[],
     oldPos: PositionObject,
     newPos: PositionObject
@@ -1247,193 +1284,58 @@ export class ChessBoardElement extends UpdatingElement {
     }
 
     let numFinished = 0;
-    const onFinishAnimation3 = () => {
-      // exit if all the animations aren't finished
-      numFinished = numFinished + 1;
-      if (numFinished !== animations.length) {
-        return;
+    const transitionEndListener = () => {
+      numFinished++;
+
+      if (numFinished === animations.length) {
+        this.shadowRoot!.removeEventListener('transitionend', transitionEndListener);
+        this._animations.clear();
+        this.requestUpdate();
+        this.dispatchEvent(
+          new CustomEvent('move-end', {
+            bubbles: true,
+            detail: {
+              oldPosition: deepCopy(oldPos),
+              newPosition: deepCopy(newPos),
+            },
+          })
+        );
       }
-
-      this._drawPositionInstant();
-
-      this.dispatchEvent(
-        new CustomEvent('move-end', {
-          bubbles: true,
-          detail: {
-            oldPosition: deepCopy(oldPos),
-            newPosition: deepCopy(newPos),
-          },
-        })
-      );
     };
+    this.shadowRoot!.addEventListener('transitionend', transitionEndListener);
 
+    // Render once with added pieces at opacity 0
+    this._animations.clear();
     for (const animation of animations) {
-      // clear a piece
-      if (animation.type === 'clear') {
-        const square = this._getSquareElement(animation.square);
-        const piece = square.querySelector(` .${CSS.piece}`) as HTMLElement;
-        piece.style.transitionProperty = 'opacity';
-        piece.style.transitionDuration = `${speedToMS(this.trashSpeed)}ms`;
-        piece.style.opacity = '0';
-        const transitionEndListener = () => {
-          piece.removeEventListener('transitionend', transitionEndListener);
-          onFinishAnimation3();
-        };
-        piece.addEventListener('transitionend', transitionEndListener);
-
-        // add a piece with no spare pieces - fade the piece onto the square
-      } else if (animation.type === 'add' && !this.sparePieces) {
-        const square = this._getSquareElement(animation.square);
-        square.insertAdjacentHTML(
-          'beforeend',
-          this._buildPieceHTML(animation.piece)
-        );
-        const piece = square.querySelector('.' + CSS.piece) as HTMLElement;
-
-        piece.style.opacity = '0';
-        setTimeout(() => {
-          piece.style.transitionProperty = 'opacity';
-          piece.style.transitionDuration = `${speedToMS(this.appearSpeed)}ms`;
-          piece.style.opacity = '1';
-          const transitionEndListener = () => {
-            piece.removeEventListener('transitionend', transitionEndListener);
-            onFinishAnimation3();
-          };
-          piece.addEventListener('transitionend', transitionEndListener);
-        }, 0);
-
-        // add a piece with spare pieces - animate from the spares
-      } else if (animation.type === 'add' && this.sparePieces) {
-        this._animateSparePieceToSquare(
-          animation.piece,
-          animation.square,
-          onFinishAnimation3
-        );
-
-        // move a piece from squareA to squareB
-      } else if (animation.type === 'move') {
-        this._animateSquareToSquare(
-          animation.source,
-          animation.destination,
-          animation.piece,
-          onFinishAnimation3
-        );
+      if (animation.type === 'add' || animation.type === 'add-start') {
+        this._animations.set(animation.square, {
+          ...animation,
+          type: 'add-start',
+        });
+      } else if (animation.type === 'move' || animation.type === 'move-start') {
+        this._animations.set(animation.destination, {
+          ...animation,
+          type: 'move-start',
+        });
+      }else {
+        this._animations.set(animation.square, animation);
       }
     }
-  }
+    this.requestUpdate();
 
-  private _animateSparePieceToSquare(
-    piece: Piece,
-    dest: Location,
-    completeFn: Function
-  ) {
-    const srcSquare = this._getSparePieceElement(piece);
-    const srcRect = srcSquare.getBoundingClientRect();
-    const destSquare = this._getSquareElement(dest);
-    const destRect = destSquare.getBoundingClientRect();
+    // Wait for a paint
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // create the animate piece
-    const pieceId = uuid();
-    this._animatedPieces.insertAdjacentHTML(
-      'beforeend',
-      this._buildPieceHTML(piece, true, pieceId)
-    );
-    const animatedPiece = this.shadowRoot!.getElementById(
-      pieceId
-    ) as HTMLElement;
-    animatedPiece.style.display = '';
-    animatedPiece.style.position = 'absolute';
-    animatedPiece.style.left = `${srcRect.left}px`;
-    animatedPiece.style.top = `${srcRect.top}px`;
-    animatedPiece.style.width = `${this._squareSize}px`;
-    animatedPiece.style.height = `${this._squareSize}px`;
-
-    // on complete
-    const onFinishAnimation2 = () => {
-      animatedPiece.removeEventListener('transitionend', onFinishAnimation2);
-
-      // add the "real" piece to the destination square
-      const destPiece = destSquare.querySelector('.' + CSS.piece);
-      if (destPiece) {
-        destPiece.remove();
+    // Render again with the piece at opacity 1 with a transition
+    this._animations.clear();
+    for (const animation of animations) {
+      if (animation.type === 'move' || animation.type === 'move-start') {
+        this._animations.set(animation.destination, animation);
+      } else {
+        this._animations.set(animation.square, animation);
       }
-      destSquare.insertAdjacentHTML('beforeend', this._buildPieceHTML(piece));
-
-      // remove the animated piece
-      animatedPiece.remove();
-
-      // run complete function
-      if (isFunction(completeFn)) {
-        completeFn();
-      }
-    };
-
-    // animate the piece to the destination square
-    animatedPiece.style.transitionProperty = 'top, left';
-    animatedPiece.style.transitionDuration = `${speedToMS(this.moveSpeed)}ms`;
-    animatedPiece.style.top = `${destRect.top + document.body.scrollTop}px`;
-    animatedPiece.style.left = `${destRect.left + document.body.scrollLeft}px`;
-    animatedPiece.addEventListener('transitionend', onFinishAnimation2);
-  }
-
-  private _animateSquareToSquare(
-    src: Location,
-    dest: Location,
-    piece: Piece,
-    completeFn: Function
-  ) {
-    // get information about the source and destination squares
-    const srcSquare = this._getSquareElement(src);
-    const srcSquareRect = srcSquare.getBoundingClientRect();
-    const destSquare = this._getSquareElement(dest);
-    const destSquareRect = destSquare.getBoundingClientRect();
-
-    // create the animated piece and absolutely position it
-    // over the source square
-    const animatedPieceId = uuid();
-    this._animatedPieces.insertAdjacentHTML(
-      'beforeend',
-      this._buildPieceHTML(piece, true, animatedPieceId)
-    );
-    const animatedPiece = this.shadowRoot!.getElementById(
-      animatedPieceId
-    ) as HTMLElement;
-    animatedPiece.style.display = '';
-    animatedPiece.style.position = 'absolute';
-    animatedPiece.style.left = `${srcSquareRect.left}px`;
-    animatedPiece.style.top = `${srcSquareRect.top}px`;
-    animatedPiece.style.width = `${this._squareSize}px`;
-    animatedPiece.style.height = `${this._squareSize}px`;
-
-    // remove original piece from source square
-    const srcPiece = srcSquare.querySelector('.' + CSS.piece);
-    if (srcPiece) {
-      srcPiece.remove();
     }
-
-    const onFinishAnimation1 = () => {
-      animatedPiece.removeEventListener('transitionend', onFinishAnimation1);
-
-      // add the "real" piece to the destination square
-      destSquare.insertAdjacentHTML('beforeend', this._buildPieceHTML(piece));
-
-      // remove the animated piece
-      animatedPiece.remove();
-
-      // run complete function
-      if (isFunction(completeFn)) {
-        completeFn();
-      }
-    };
-
-    // animate the piece to the destination square
-    animatedPiece.style.transitionProperty = 'top, left';
-    animatedPiece.style.transitionDuration = `${speedToMS(this.moveSpeed)}ms`;
-    animatedPiece.style.top = `${destSquareRect.top +
-      document.body.scrollTop}px`;
-    animatedPiece.style.left = `${destSquareRect.left +
-      document.body.scrollLeft}px`;
-    animatedPiece.addEventListener('transitionend', onFinishAnimation1);
+    this.requestUpdate();
   }
 
   // -------------------------------------------------------------------------

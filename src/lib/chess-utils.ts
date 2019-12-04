@@ -1,12 +1,14 @@
 import {isString, deepCopy} from './utils.js';
 
 export type Piece = string;
-export type PositionObject = {[square: string]: Piece};
+export type PositionObject = {[square: string]: Piece|undefined};
 export type Position = PositionObject | 'start' | string;
 
 const RUN_ASSERTS = true;
 export const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 export const COLUMNS = 'abcdefgh'.split('');
+
+export const getSquareColor = (square: string) => (square.charCodeAt(0) % 2) ^ (square.charCodeAt(1) % 2) ? 'white' : 'black';
 
 export const validSquare = (square: unknown): square is string => {
   return isString(square) && square.search(/^[a-h][1-8]$/) !== -1;
@@ -222,7 +224,7 @@ export const objToFen = (obj: PositionObject) => {
 
       // piece exists
       if (obj.hasOwnProperty(square)) {
-        fen = fen + pieceCodeToFen(obj[square]);
+        fen = fen + pieceCodeToFen(obj[square]!);
       } else {
         // empty space
         fen = fen + '1';
