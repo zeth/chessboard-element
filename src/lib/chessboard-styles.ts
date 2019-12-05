@@ -4,7 +4,8 @@ export const styles = `
   :host {
     display: block;
   }
-  .board {
+
+  #board {
     border: 2px solid #404040;
     box-sizing: border-box;
     display: grid;
@@ -47,8 +48,7 @@ export const styles = `
     color: #f0d9b5;
   }
 
-  .highlight1,
-  .highlight2 {
+  .highlight {
     box-shadow: inset 0 0 3px 3px yellow;
   }
 

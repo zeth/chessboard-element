@@ -47,23 +47,6 @@ const DEFAULT_SNAPBACK_SPEED = 60;
 const DEFAULT_SNAP_SPEED = 30;
 const DEFAULT_TRASH_SPEED = 100;
 
-const CSS = {
-  alpha: 'alpha',
-  black: 'black',
-  board: 'board',
-  highlight1: 'highlight1',
-  highlight2: 'highlight2',
-  notation: 'notation',
-  numeric: 'numeric',
-  piece: 'piece',
-  row: 'row',
-  sparePieces: 'spare-pieces',
-  sparePiecesBottom: 'spare-pieces-bottom',
-  sparePiecesTop: 'spare-pieces-top',
-  square: 'square',
-  white: 'white',
-};
-
 // ---------------------------------------------------------------------------
 // Type Definitions
 // ---------------------------------------------------------------------------
@@ -222,14 +205,8 @@ export class ChessBoardElement extends LitElement {
   })
   sparePieces = false;
 
-  @query('.' + CSS.board)
+  @query('#board')
   private _board!: HTMLElement;
-
-  @query('.' + CSS.sparePiecesTop)
-  private _sparePiecesTop!: HTMLElement | null;
-
-  @query('.' + CSS.sparePiecesBottom)
-  private _sparePiecesBottom!: HTMLElement | null;
 
   @query('#dragged-piece')
   private _draggedPieceElement!: HTMLElement;
@@ -239,6 +216,7 @@ export class ChessBoardElement extends LitElement {
   private _animations = new Map<Location, Animation>();
 
   private _currentPosition: PositionObject = {};
+
   private _draggedPiece: string | null = null;
   private _draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
   private _draggedPieceSource: string | null = null;
@@ -462,26 +440,26 @@ export class ChessBoardElement extends LitElement {
     const addEvents = () => {
       // prevent "image drag"
       this.shadowRoot!.addEventListener('mousedown', (e) => {
-        if ((e.target as HTMLElement).matches('.' + CSS.piece)) {
+        if ((e.target as HTMLElement).matches('.piece')) {
           e.preventDefault();
         }
       });
       this.shadowRoot!.addEventListener('mousemove', (e) => {
-        if ((e.target as HTMLElement).matches('.' + CSS.piece)) {
+        if ((e.target as HTMLElement).matches('.piece')) {
           e.preventDefault();
         }
       });
 
       // mouse drag pieces
       this.shadowRoot!.addEventListener('mousedown', (e) => {
-        if ((e.target as HTMLElement).closest('.' + CSS.square)) {
+        if ((e.target as HTMLElement).closest('.square')) {
           mousedownSquare(e as MouseEvent);
         }
       });
       this.shadowRoot!.addEventListener('mousedown', (e) => {
         if (
           (e.target as HTMLElement).closest(
-            '.' + CSS.sparePieces + ' .' + CSS.piece
+            '.spare-pieces .piece'
           )
         ) {
           mousedownSparePiece(e as MouseEvent);
@@ -489,7 +467,7 @@ export class ChessBoardElement extends LitElement {
       });
 
       // mouse enter / leave square
-      const squares = this.shadowRoot!.querySelectorAll('.' + CSS.square);
+      const squares = this.shadowRoot!.querySelectorAll('.square');
       for (const square of Array.from(squares)) {
         square.addEventListener('mouseenter', mouseenterSquare);
         square.addEventListener('mouseleave', mouseleaveSquare);
@@ -502,14 +480,14 @@ export class ChessBoardElement extends LitElement {
       // touch drag pieces
       if (isTouchDevice()) {
         this._board.addEventListener('touchstart', (e) => {
-          if ((e.target as HTMLElement).closest('.' + CSS.square)) {
+          if ((e.target as HTMLElement).closest('.square')) {
             touchstartSquare(e);
           }
         });
         this.shadowRoot!.addEventListener('touchstart', (e) => {
           if (
             (e.target as HTMLElement).closest(
-              '.' + CSS.sparePieces + ' .' + CSS.piece
+              '.spare-pieces .piece'
             )
           ) {
             touchstartSparePiece(e as TouchEvent);
@@ -545,18 +523,22 @@ export class ChessBoardElement extends LitElement {
       <style>
         ${styles}
       </style>
-      <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}">
+      <div class="spare-pieces">
         ${this._renderSparePieces(
           this.orientation === 'white' ? 'black' : 'white'
         )}
       </div>
-      <div class="${CSS.board}">${this._renderBoard()}</div>
-      <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}">
+      ${this._renderBoard()}
+      <div class="spare-pieces">
         ${this._renderSparePieces(
           this.orientation === 'white' ? 'white' : 'black'
         )}
       </div>
-      <div id="animated-pieces">
+      <div
+          id="dragged-pieces"
+          style=${styleMap({
+            width: `${this._squareSize}px`,
+            height: `${this._squareSize}px`})}>
         ${this._renderPiece(
           this._draggedPiece ?? '',
           undefined,
@@ -588,7 +570,7 @@ export class ChessBoardElement extends LitElement {
   }
 
   private _renderBoard() {
-    const results = [];
+    const squares = [];
     const isFlipped = this.orientation === 'black';
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
@@ -602,10 +584,9 @@ export class ChessBoardElement extends LitElement {
         const classes = {
           [squareColor]: true,
           [`square-${square}`]: true,
-          [CSS.highlight1]: isDragSource,
-          [CSS.highlight2]: this._highlightedSquares.has(square),
+          highlight: isDragSource || this._highlightedSquares.has(square),
         };
-        results.push(html`
+        squares.push(html`
           <div
             class="square ${classMap(classes)}"
             id="${squareId(square)}"
@@ -627,7 +608,11 @@ export class ChessBoardElement extends LitElement {
         `);
       }
     }
-    return results;
+    const styles = {
+      width: this._squareSize * 8 + 'px',
+      height: this._squareSize * 8 + 'px',
+    };
+    return html`<div id="board" style=${styleMap(styles)}>${squares}</div>`;
   }
 
   _renderPiece(
@@ -712,7 +697,7 @@ export class ChessBoardElement extends LitElement {
       <img
         id="${ifDefined(id)}"
         src="${ifDefined(src)}"
-        class="${CSS.piece}"
+        class="piece"
         data-piece="${piece}"
         style="${styleMap(style as StyleInfo)}"
       />
@@ -829,23 +814,21 @@ export class ChessBoardElement extends LitElement {
   }
 
   resize() {
-    // set board size
-    this._board.style.width = this._squareSize * 8 + 'px';
-    this._board.style.height = this._squareSize * 8 + 'px';
+    this.requestUpdate();
+  }
 
-    // set drag piece size
-    if (this._draggedPieceElement) {
-      this._draggedPieceElement.style.height = `${this._squareSize}px`;
-      this._draggedPieceElement.style.width = `${this._squareSize}px`;
-    }
+  firstUpdated() {
+    // We need to re-render to read the size of the container
+    this.requestUpdate();
   }
 
   // -------------------------------------------------------------------------
   // Lifecycle Callbacks
   // -------------------------------------------------------------------------
 
-  firstUpdated() {
-    this.resize();
+  updated() {
+    this._draggedPieceElement.style.height = `${this._squareSize}px`;
+    this._draggedPieceElement.style.width = `${this._squareSize}px`;
   }
 
   // -------------------------------------------------------------------------
