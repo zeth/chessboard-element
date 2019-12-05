@@ -5,13 +5,7 @@
 // Released under the MIT license
 // https://github.com/oakmac/chessboardjs/blob/master/LICENSE.md
 
-import {
-  customElement,
-  property,
-  LitElement,
-  html,
-  query,
-} from 'lit-element';
+import {customElement, property, LitElement, html, query} from 'lit-element';
 import {classMap} from 'lit-html/directives/class-map.js';
 import {styleMap, StyleInfo} from 'lit-html/directives/style-map.js';
 import {ifDefined} from 'lit-html/directives/if-defined.js';
@@ -91,12 +85,12 @@ export type Animation =
       square?: undefined;
     }
   | {
-    type: 'move-start';
-    source: string;
-    destination: string;
-    piece: string;
-    square?: undefined;
-  }
+      type: 'move-start';
+      source: string;
+      destination: string;
+      piece: string;
+      square?: undefined;
+    }
   | {
       type: 'add';
       square: string;
@@ -108,10 +102,10 @@ export type Animation =
       piece: string;
     }
   | {
-    type: 'add-start',
-    square: string;
-    piece: string;
-  };
+      type: 'add-start';
+      square: string;
+      piece: string;
+    };
 
 // ---------------------------------------------------------------------------
 // Predicates
@@ -552,13 +546,24 @@ export class ChessBoardElement extends LitElement {
         ${styles}
       </style>
       <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}">
-        ${this._renderSparePieces(this.orientation === 'white' ? 'black' : 'white')}
+        ${this._renderSparePieces(
+          this.orientation === 'white' ? 'black' : 'white'
+        )}
       </div>
       <div class="${CSS.board}">${this._renderBoard()}</div>
       <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}">
-        ${this._renderSparePieces(this.orientation === 'white' ? 'white' : 'black')}
+        ${this._renderSparePieces(
+          this.orientation === 'white' ? 'white' : 'black'
+        )}
       </div>
-      <div id="animated-pieces">${this._renderPiece(this._draggedPiece ?? '', undefined, false, 'dragged-piece')}</div>
+      <div id="animated-pieces">
+        ${this._renderPiece(
+          this._draggedPiece ?? '',
+          undefined,
+          false,
+          'dragged-piece'
+        )}
+      </div>
     `;
   }
 
@@ -570,10 +575,16 @@ export class ChessBoardElement extends LitElement {
     const pieces = color === 'black' ? blackPieces : whitePieces;
     return html`
       <div></div>
-      ${pieces.map((p) => html`<div>${
-        this._renderPiece(p, undefined, false, sparePieceId(p))
-      }</div>`)}
-      <div></div>`;
+      ${pieces.map(
+        (p) =>
+          html`
+            <div>
+              ${this._renderPiece(p, undefined, false, sparePieceId(p))}
+            </div>
+          `
+      )}
+      <div></div>
+    `;
   }
 
   private _renderBoard() {
@@ -596,14 +607,21 @@ export class ChessBoardElement extends LitElement {
         };
         results.push(html`
           <div
-              class="square ${classMap(classes)}"
-              id="${squareId(square)}"
-              data-square="${square}"
-              part="${square} ${squareColor}">
-            ${this.showNotation && row === 7 ? 
-              html`<div class="notation alpha">${file}</div>`: nothing}
-            ${this.showNotation && col === 0 ? 
-              html`<div class="notation numeric">${rank}</div>`: nothing}
+            class="square ${classMap(classes)}"
+            id="${squareId(square)}"
+            data-square="${square}"
+            part="${square} ${squareColor}"
+          >
+            ${this.showNotation && row === 7
+              ? html`
+                  <div class="notation alpha">${file}</div>
+                `
+              : nothing}
+            ${this.showNotation && col === 0
+              ? html`
+                  <div class="notation numeric">${rank}</div>
+                `
+              : nothing}
             ${this._renderPiece(piece, animation, isDragSource)}
           </div>
         `);
@@ -612,7 +630,12 @@ export class ChessBoardElement extends LitElement {
     return results;
   }
 
-  _renderPiece(piece: Piece|undefined, animation?: Animation|undefined, isDragSource?: boolean, id?: string) {
+  _renderPiece(
+    piece: Piece | undefined,
+    animation?: Animation | undefined,
+    isDragSource?: boolean,
+    id?: string
+  ) {
     if (isDragSource) {
       return nothing;
     }
@@ -624,12 +647,18 @@ export class ChessBoardElement extends LitElement {
     };
 
     if (animation) {
-      if (piece && (animation.type === 'move-start' || (animation.type === 'add-start' && this.draggablePieces))) {
+      if (
+        piece &&
+        (animation.type === 'move-start' ||
+          (animation.type === 'add-start' && this.draggablePieces))
+      ) {
         // Position the moved piece absolutely at the source
-        const srcSquare = animation.type === 'move-start'
+        const srcSquare =
+          animation.type === 'move-start'
             ? this._getSquareElement(animation.source)
             : this._getSparePieceElement(piece);
-        const destSquare = animation.type === 'move-start'
+        const destSquare =
+          animation.type === 'move-start'
             ? this._getSquareElement(animation.destination)
             : this._getSquareElement(animation.square);
 
@@ -641,7 +670,11 @@ export class ChessBoardElement extends LitElement {
         style.top = `${srcSquareRect.top - destSquareRect.top}px`;
         style.width = `${this._squareSize}px`;
         style.height = `${this._squareSize}px`;
-      } else if (piece && (animation.type === 'move' || (animation.type === 'add' && this.draggablePieces))) {
+      } else if (
+        piece &&
+        (animation.type === 'move' ||
+          (animation.type === 'add' && this.draggablePieces))
+      ) {
         // Transition the moved piece to the destination
         style.position = 'absolute';
         style.transitionProperty = 'top, left';
@@ -682,7 +715,8 @@ export class ChessBoardElement extends LitElement {
         class="${CSS.piece}"
         data-piece="${piece}"
         style="${styleMap(style as StyleInfo)}"
-      >`;
+      />
+    `;
   }
 
   private _buildPieceImgSrc(piece: string) {
@@ -1234,7 +1268,10 @@ export class ChessBoardElement extends LitElement {
       numFinished++;
 
       if (numFinished === animations.length) {
-        this.shadowRoot!.removeEventListener('transitionend', transitionEndListener);
+        this.shadowRoot!.removeEventListener(
+          'transitionend',
+          transitionEndListener
+        );
         this._animations.clear();
         this.requestUpdate();
         this.dispatchEvent(
@@ -1263,7 +1300,7 @@ export class ChessBoardElement extends LitElement {
           ...animation,
           type: 'move-start',
         });
-      }else {
+      } else {
         this._animations.set(animation.square, animation);
       }
     }

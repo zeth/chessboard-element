@@ -1,7 +1,7 @@
 import {isString, deepCopy} from './utils.js';
 
 export type Piece = string;
-export type PositionObject = {[square: string]: Piece|undefined};
+export type PositionObject = {[square: string]: Piece | undefined};
 export type Position = PositionObject | 'start' | string;
 
 const RUN_ASSERTS = true;
@@ -11,7 +11,8 @@ export const COLUMNS = 'abcdefgh'.split('');
 export const whitePieces = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP'];
 export const blackPieces = ['bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
 
-export const getSquareColor = (square: string) => (square.charCodeAt(0) % 2) ^ (square.charCodeAt(1) % 2) ? 'white' : 'black';
+export const getSquareColor = (square: string) =>
+  square.charCodeAt(0) % 2 ^ square.charCodeAt(1) % 2 ? 'white' : 'black';
 
 export const validSquare = (square: unknown): square is string => {
   return isString(square) && square.search(/^[a-h][1-8]$/) !== -1;
