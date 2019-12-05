@@ -8,6 +8,9 @@ const RUN_ASSERTS = true;
 export const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 export const COLUMNS = 'abcdefgh'.split('');
 
+export const whitePieces = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP'];
+export const blackPieces = ['bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
+
 export const getSquareColor = (square: string) => (square.charCodeAt(0) % 2) ^ (square.charCodeAt(1) % 2) ? 'white' : 'black';
 
 export const validSquare = (square: unknown): square is string => {

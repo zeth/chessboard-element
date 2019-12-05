@@ -40,6 +40,8 @@ import {
   COLUMNS,
   normalizePozition,
   getSquareColor,
+  blackPieces,
+  whitePieces,
 } from './chess-utils.js';
 
 // ---------------------------------------------------------------------------
@@ -553,11 +555,29 @@ export class ChessBoardElement extends LitElement {
       <style>
         ${styles}
       </style>
-      <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}"></div>
+      <div class="${CSS.sparePieces} ${CSS.sparePiecesTop}">
+        ${this._renderSparePieces(this.orientation === 'white' ? 'black' : 'white')}
+      </div>
       <div class="${CSS.board}">${this._renderBoard()}</div>
-      <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}"></div>
+      <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}">
+        ${this._renderSparePieces(this.orientation === 'white' ? 'white' : 'black')}
+      </div>
       <div id="animated-pieces"></div>
     `;
+  }
+
+  private _renderSparePieces(color: SquareColor) {
+    if (!this.sparePieces) {
+      return nothing;
+    }
+
+    const pieces = color === 'black' ? blackPieces : whitePieces;
+    return html`
+      <div></div>
+      ${pieces.map((p) => html`<div>${
+        this._renderPiece(p, undefined, false, sparePieceId(p))
+      }</div>`)}
+      <div></div>`;
   }
 
   private _renderBoard() {
@@ -596,7 +616,7 @@ export class ChessBoardElement extends LitElement {
     return results;
   }
 
-  _renderPiece(piece: Piece|undefined, animation: Animation|undefined, isDragSource: boolean) {
+  _renderPiece(piece: Piece|undefined, animation?: Animation|undefined, isDragSource?: boolean, id?: string) {
     if (isDragSource) {
       return nothing;
     }
@@ -658,6 +678,7 @@ export class ChessBoardElement extends LitElement {
 
     return html`
       <img
+        id="${ifDefined(id)}"
         src="${this._buildPieceImgSrc(piece)}"
         class="${CSS.piece}"
         data-piece="${piece}"
@@ -691,25 +712,6 @@ export class ChessBoardElement extends LitElement {
         data-piece="${piece}"
         style="${hidden ? `display:none;` : ``}"
       >`;
-  }
-
-  private _buildSparePiecesHTML(color: SquareColor) {
-    let pieces = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP'];
-    if (color === 'black') {
-      pieces = ['bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
-    }
-
-    let html = '<div></div>';
-    for (let i = 0; i < pieces.length; i++) {
-      html += `<div>${this._buildPieceHTML(
-        pieces[i],
-        false,
-        sparePieceId(pieces[i])
-      )}</div>`;
-    }
-    html += '<div></div>';
-
-    return html;
   }
 
   // -------------------------------------------------------------------------
@@ -819,7 +821,7 @@ export class ChessBoardElement extends LitElement {
     }
 
     // redraw the board
-    this._drawBoard();
+    // this._drawBoard();
   }
 
   // -------------------------------------------------------------------------
@@ -840,32 +842,9 @@ export class ChessBoardElement extends LitElement {
     this.resize();
   }
 
-  update(changedProperties: PropertyValues) {
-    super.update(changedProperties);
-    // TODO: call this._drawPositionInstant() most of the time so we don't
-    // redraw the board unnecessarily.
-    this._drawBoard();
-  }
-
   // -------------------------------------------------------------------------
   // Control Flow
   // -------------------------------------------------------------------------
-
-  private _drawBoard() {
-    if (this.sparePieces) {
-      if (this.orientation === 'white') {
-        this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('black');
-        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML(
-          'white'
-        );
-      } else {
-        this._sparePiecesTop!.innerHTML = this._buildSparePiecesHTML('white');
-        this._sparePiecesBottom!.innerHTML = this._buildSparePiecesHTML(
-          'black'
-        );
-      }
-    }
-  }
 
   private _setCurrentPosition(position: PositionObject) {
     const oldPos = deepCopy(this._currentPosition);
@@ -983,7 +962,6 @@ export class ChessBoardElement extends LitElement {
   }
 
   private _dropDraggedPieceOnSquare(square: string) {
-    console.log('_dropDraggedPieceOnSquare', square)
     this._removeSquareHighlights();
 
     // update position
