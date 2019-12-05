@@ -41,11 +41,11 @@ import {
 // ---------------------------------------------------------------------------
 
 // default animation speeds
-const DEFAULT_APPEAR_SPEED = 600; // 200;
-const DEFAULT_MOVE_SPEED = 600; //200;
+const DEFAULT_APPEAR_SPEED = 200;
+const DEFAULT_MOVE_SPEED = 200;
 const DEFAULT_SNAPBACK_SPEED = 60;
 const DEFAULT_SNAP_SPEED = 30;
-const DEFAULT_TRASH_SPEED = 600; //100;
+const DEFAULT_TRASH_SPEED = 100;
 
 const CSS = {
   alpha: 'alpha',
