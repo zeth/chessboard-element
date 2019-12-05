@@ -8,7 +8,6 @@
 import {
   customElement,
   property,
-  PropertyValues,
   LitElement,
   html,
   query,
@@ -19,7 +18,6 @@ import {ifDefined} from 'lit-html/directives/if-defined.js';
 import {nothing} from 'lit-html';
 
 import {
-  uuid,
   deepCopy,
   interpolateTemplate,
   isString,
@@ -239,12 +237,10 @@ export class ChessBoardElement extends LitElement {
   @query('.' + CSS.sparePiecesBottom)
   private _sparePiecesBottom!: HTMLElement | null;
 
-  @query('#animated-pieces')
-  private _animatedPieces!: HTMLElement;
-
+  @query('#dragged-piece')
+  private _draggedPieceElement!: HTMLElement;
 
   private _highlightedSquares = new Set();
-  private _draggedPieceElement!: HTMLElement;
 
   private _animations = new Map<Location, Animation>();
 
@@ -562,7 +558,7 @@ export class ChessBoardElement extends LitElement {
       <div class="${CSS.sparePieces} ${CSS.sparePiecesBottom}">
         ${this._renderSparePieces(this.orientation === 'white' ? 'white' : 'black')}
       </div>
-      <div id="animated-pieces"></div>
+      <div id="animated-pieces">${this._renderPiece(this._draggedPiece ?? '', undefined, false, 'dragged-piece')}</div>
     `;
   }
 
@@ -650,8 +646,6 @@ export class ChessBoardElement extends LitElement {
         style.position = 'absolute';
         style.transitionProperty = 'top, left';
         style.transitionDuration = `${speedToMS(this.moveSpeed)}ms`;
-        // style.top = `${destSquareRect.top}px`;
-        // style.left = `${destSquareRect.left}px`;
         style.top = `0`;
         style.left = `0`;
         style.width = `${this._squareSize}px`;
@@ -675,11 +669,16 @@ export class ChessBoardElement extends LitElement {
     if (piece === undefined) {
       return nothing;
     }
+    if (piece === '') {
+      style.display = 'none';
+    }
+
+    const src = piece === '' ? undefined : this._buildPieceImgSrc(piece);
 
     return html`
       <img
         id="${ifDefined(id)}"
-        src="${this._buildPieceImgSrc(piece)}"
+        src="${ifDefined(src)}"
         class="${CSS.piece}"
         data-piece="${piece}"
         style="${styleMap(style as StyleInfo)}"
@@ -697,21 +696,7 @@ export class ChessBoardElement extends LitElement {
 
     // NOTE: this should never happen
     this._error(8272, 'Unable to build image source for config.pieceTheme.');
-    return '';
-  }
-
-  private _buildPieceHTML(piece: string, hidden?: boolean, id?: string) {
-    const fadingIng = false;
-
-    return `
-      <img
-        src="${this._buildPieceImgSrc(piece)}"
-        ${isString(id) && id !== '' ? `id="${id}"` : ``}
-        alt=""
-        class="${CSS.piece}"
-        data-piece="${piece}"
-        style="${hidden ? `display:none;` : ``}"
-      >`;
+    return undefined;
   }
 
   // -------------------------------------------------------------------------
@@ -819,9 +804,6 @@ export class ChessBoardElement extends LitElement {
       this._draggedPieceElement.style.height = `${this._squareSize}px`;
       this._draggedPieceElement.style.width = `${this._squareSize}px`;
     }
-
-    // redraw the board
-    // this._drawBoard();
   }
 
   // -------------------------------------------------------------------------
@@ -829,16 +811,6 @@ export class ChessBoardElement extends LitElement {
   // -------------------------------------------------------------------------
 
   firstUpdated() {
-    // create the drag piece
-    const draggedPieceId = uuid();
-
-    this._animatedPieces.insertAdjacentHTML(
-      'beforeend',
-      this._buildPieceHTML('wP', true, draggedPieceId)
-    );
-    this._draggedPieceElement = this.shadowRoot!.getElementById(
-      draggedPieceId
-    )!;    
     this.resize();
   }
 
@@ -1049,11 +1021,7 @@ export class ChessBoardElement extends LitElement {
       this._draggedPieceLocation = source;
     }
 
-    // create the dragged piece
-    this._draggedPieceElement.setAttribute(
-      'src',
-      this._buildPieceImgSrc(piece!)
-    );
+    // move the dragged piece
     this._draggedPieceElement.style.opacity = '1';
     this._draggedPieceElement.style.display = '';
     this._draggedPieceElement.style.position = 'absolute';

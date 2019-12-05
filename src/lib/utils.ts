@@ -12,13 +12,6 @@ export const isInteger = (n: unknown): n is number => {
   return typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
 };
 
-export const uuid = () => {
-  return 'xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx-xxxx'.replace(/x/g, function() {
-    const r = (Math.random() * 16) | 0;
-    return r.toString(16);
-  });
-};
-
 export const deepCopy = (thing: unknown) => {
   return JSON.parse(JSON.stringify(thing));
 };
