@@ -1,6 +1,8 @@
 /*! chessboard.js v@VERSION | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
 
-export const styles = `
+import { css } from 'lit-element';
+
+export const styles = css`
   :host {
     display: block;
   }

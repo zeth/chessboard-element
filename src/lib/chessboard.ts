@@ -119,6 +119,8 @@ const wikipediaPiece = (p: string) => `img/chesspieces/wikipedia/${p}.png`;
 
 @customElement('chess-board')
 export class ChessBoardElement extends LitElement {
+  static styles = styles;
+  
   /**
    * The current position of the board, as a `PositionObject`. This property may
    * be set externally, but only to valid `PositionObject`s. The value is copied
@@ -236,9 +238,6 @@ export class ChessBoardElement extends LitElement {
 
   render() {
     return html`
-      <style>
-        ${styles}
-      </style>
       <div class="spare-pieces">
         ${this._renderSparePieces(
           this.orientation === 'white' ? 'black' : 'white'
