@@ -214,6 +214,7 @@ export class ChessBoardElement extends LitElement {
   private _draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
   private _draggedPieceSource: string | null = null;
   private _isDragging = false;
+  private _dragPosition?: [number, number];
 
   private get _squareSize() {
     // Note: this isn't cached, but is called during user interactions, so we
@@ -254,14 +255,8 @@ export class ChessBoardElement extends LitElement {
         style=${styleMap({
           width: `${this._squareSize}px`,
           height: `${this._squareSize}px`,
-        })}
-      >
-        ${this._renderPiece(
-          this._draggedPiece ?? '',
-          {},
-          false,
-          'dragged-piece'
-        )}
+        })}>
+        ${this._renderDraggedPiece()}
       </div>
     `;
   }
@@ -287,6 +282,36 @@ export class ChessBoardElement extends LitElement {
       )}
       <div></div>
     `;
+  }
+
+  private _renderDraggedPiece() {
+    let styles: Partial<CSSStyleDeclaration> = {
+      height: `${this._squareSize}px`,
+      width: `${this._squareSize}px`,
+    };
+    if (this._isDragging) {
+      const [x, y] = this._dragPosition!;
+      styles = {
+        ...styles,
+        opacity: '1',
+        display: '',
+        position: 'absolute',
+        left: `${x - this._squareSize / 2}px`,
+        top: `${y - this._squareSize / 2}px`,
+      };
+    } else {
+      styles = {
+        ...styles,
+        display: 'none',
+      };
+    }
+
+    return this._renderPiece(
+      this._draggedPiece ?? '',
+      styles,
+      false,
+      'dragged-piece'
+    );
   }
 
   private _renderBoard() {
@@ -582,7 +607,7 @@ export class ChessBoardElement extends LitElement {
     );
   }
 
-  private _mousemoveWindow = (e: MouseEvent) => {
+  private _mousemoveWindow = (e: MouseEvent) => {    
     if (this._isDragging) {
       this._updateDraggedPiece(e.pageX, e.pageY);
     }
@@ -795,11 +820,6 @@ export class ChessBoardElement extends LitElement {
     window.removeEventListener('touchend', this._touchendWindow);
   }
 
-  updated() {
-    this._draggedPieceElement.style.height = `${this._squareSize}px`;
-    this._draggedPieceElement.style.width = `${this._squareSize}px`;
-  }
-
   // -------------------------------------------------------------------------
   // Control Flow
   // -------------------------------------------------------------------------
@@ -865,7 +885,6 @@ export class ChessBoardElement extends LitElement {
       this._draggedPieceElement.removeEventListener('transitionend', complete);
 
       this.requestUpdate();
-      this._draggedPieceElement.style.display = 'none';
 
       this.dispatchEvent(
         new CustomEvent('snapback-end', {
@@ -997,6 +1016,7 @@ export class ChessBoardElement extends LitElement {
 
     // set state
     this._isDragging = true;
+    this._dragPosition = [x, y];
     this._draggedPiece = piece;
     this._draggedPieceSource = source;
 
@@ -1006,21 +1026,14 @@ export class ChessBoardElement extends LitElement {
     } else {
       this._draggedPieceLocation = source;
     }
-
-    // move the dragged piece
-    this._draggedPieceElement.style.opacity = '1';
-    this._draggedPieceElement.style.display = '';
-    this._draggedPieceElement.style.position = 'absolute';
-    this._draggedPieceElement.style.left = `${x - this._squareSize / 2}px`;
-    this._draggedPieceElement.style.top = `${y - this._squareSize / 2}px`;
-
     this.requestUpdate();
   }
 
   private _updateDraggedPiece(x: number, y: number) {
+    this.requestUpdate();
+
     // put the dragged piece over the mouse cursor
-    this._draggedPieceElement.style.left = `${x - this._squareSize / 2}px`;
-    this._draggedPieceElement.style.top = `${y - this._squareSize / 2}px`;
+    this._dragPosition = [x, y];
 
     // get location
     const location = this._isXYOnSquare(x, y);
@@ -1120,6 +1133,7 @@ export class ChessBoardElement extends LitElement {
 
     // clear state
     this._isDragging = false;
+    this._dragPosition = undefined;
     this._draggedPiece = null;
     this._draggedPieceSource = null;
   }
