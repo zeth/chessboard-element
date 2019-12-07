@@ -100,10 +100,6 @@ function validAnimationSpeed(speed: unknown): speed is AnimationSpeed {
   return speed >= 0;
 }
 
-function isTouchDevice() {
-  return 'ontouchstart' in document.documentElement;
-}
-
 const speedToMS = (speed: AnimationSpeed) => {
   if (typeof speed === 'number') {
     return speed;
@@ -205,9 +201,6 @@ export class ChessBoardElement extends LitElement {
   })
   sparePieces = false;
 
-  @query('#board')
-  private _board!: HTMLElement;
-
   @query('#dragged-piece')
   private _draggedPieceElement!: HTMLElement;
 
@@ -226,284 +219,6 @@ export class ChessBoardElement extends LitElement {
     // Note: this isn't cached, but is called during user interactions, so we
     // have a bit of time to use under RAIL guidelines.
     return this.offsetWidth / 8;
-  }
-
-  constructor() {
-    super();
-
-    // -------------------------------------------------------------------------
-    // Browser Events
-    // -------------------------------------------------------------------------
-
-    const mousedownSquare = (e: MouseEvent) => {
-      // do nothing if we're not draggable. sparePieces implies draggable
-      if (!this.draggablePieces && !this.sparePieces) {
-        return;
-      }
-
-      // do nothing if there is no piece on this square
-      const squareEl = (e.target as HTMLElement).closest('[data-square]');
-      const square = squareEl!.getAttribute('data-square');
-      if (!validSquare(square)) {
-        return;
-      }
-      if (!this._currentPosition.hasOwnProperty(square)) {
-        return;
-      }
-      this._beginDraggingPiece(
-        square,
-        this._currentPosition[square]!,
-        e.pageX,
-        e.pageY
-      );
-    };
-
-    const touchstartSquare = (e: TouchEvent) => {
-      // do nothing if we're not draggable. sparePieces implies draggable
-      if (!this.draggablePieces && !this.sparePieces) {
-        return;
-      }
-
-      // do nothing if there is no piece on this square
-      const squareEl = (e.target as HTMLElement).closest('[data-square]');
-      const square = squareEl!.getAttribute('data-square');
-      if (!validSquare(square)) {
-        return;
-      }
-      if (!this._currentPosition.hasOwnProperty(square)) {
-        return;
-      }
-
-      e = (e as any).originalEvent;
-      this._beginDraggingPiece(
-        square,
-        this._currentPosition[square]!,
-        e.changedTouches[0].pageX,
-        e.changedTouches[0].pageY
-      );
-    };
-
-    const mousedownSparePiece = (e: MouseEvent) => {
-      // do nothing if sparePieces is not enabled
-      if (!this.sparePieces) {
-        return;
-      }
-      const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
-      const piece = pieceEl!.getAttribute('data-piece');
-
-      this._beginDraggingPiece('spare', piece, e.pageX, e.pageY);
-    };
-
-    const touchstartSparePiece = (e: TouchEvent) => {
-      // do nothing if sparePieces is not enabled
-      if (!this.sparePieces) return;
-
-      const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
-      const piece = pieceEl!.getAttribute('data-piece');
-
-      e = (e as any).originalEvent;
-      this._beginDraggingPiece(
-        'spare',
-        piece,
-        e.changedTouches[0].pageX,
-        e.changedTouches[0].pageY
-      );
-    };
-
-    const mousemoveWindow = (e: MouseEvent) => {
-      if (this._isDragging) {
-        this._updateDraggedPiece(e.pageX, e.pageY);
-      }
-    };
-
-    const touchmoveWindow = (e: TouchEvent) => {
-      // do nothing if we are not dragging a piece
-      if (!this._isDragging) {
-        return;
-      }
-
-      // prevent screen from scrolling
-      e.preventDefault();
-
-      this._updateDraggedPiece(
-        (e as any).originalEvent.changedTouches[0].pageX,
-        (e as any).originalEvent.changedTouches[0].pageY
-      );
-    };
-
-    const mouseupWindow = (e: MouseEvent) => {
-      // do nothing if we are not dragging a piece
-      if (!this._isDragging) {
-        return;
-      }
-
-      // get the location
-      const location = this._isXYOnSquare(e.pageX, e.pageY);
-
-      this._stopDraggedPiece(location);
-    };
-
-    const touchendWindow = (e: TouchEvent) => {
-      // do nothing if we are not dragging a piece
-      if (!this._isDragging) {
-        return;
-      }
-
-      // get the location
-      const location = this._isXYOnSquare(
-        (e as any).originalEvent.changedTouches[0].pageX,
-        (e as any).originalEvent.changedTouches[0].pageY
-      );
-
-      this._stopDraggedPiece(location);
-    };
-
-    const mouseenterSquare = (e: Event) => {
-      // do not fire this event if we are dragging a piece
-      // NOTE: this should never happen, but it's a safeguard
-      if (this._isDragging) {
-        return;
-      }
-
-      // get the square
-      const square = (e.currentTarget as HTMLElement).getAttribute(
-        'data-square'
-      );
-
-      // NOTE: this should never happen; defensive
-      if (!validSquare(square)) {
-        return;
-      }
-
-      // get the piece on this square
-      let piece: string | false = false;
-
-      if (this._currentPosition.hasOwnProperty(square)) {
-        piece = this._currentPosition[square]!;
-      }
-
-      this.dispatchEvent(
-        new CustomEvent('mouseover-square', {
-          bubbles: true,
-          detail: {
-            square,
-            piece,
-            position: deepCopy(this._currentPosition),
-            orientation: this.orientation,
-          },
-        })
-      );
-    };
-
-    const mouseleaveSquare = (e: Event) => {
-      // do not fire this event if we are dragging a piece
-      // NOTE: this should never happen, but it's a safeguard
-      if (this._isDragging) {
-        return;
-      }
-
-      // get the square
-      const square = (e.currentTarget as HTMLElement).getAttribute(
-        'data-square'
-      );
-
-      // NOTE: this should never happen; defensive
-      if (!validSquare(square)) {
-        return;
-      }
-
-      // get the piece on this square
-      let piece: string | false = false;
-
-      if (this._currentPosition.hasOwnProperty(square)) {
-        piece = this._currentPosition[square]!;
-      }
-
-      // execute their function
-      this.dispatchEvent(
-        new CustomEvent('mouseout-square', {
-          bubbles: true,
-          detail: {
-            square,
-            piece,
-            position: deepCopy(this._currentPosition),
-            orientation: this.orientation,
-          },
-        })
-      );
-    };
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    const addEvents = () => {
-      // prevent "image drag"
-      this.shadowRoot!.addEventListener('mousedown', (e) => {
-        if ((e.target as HTMLElement).matches('.piece')) {
-          e.preventDefault();
-        }
-      });
-      this.shadowRoot!.addEventListener('mousemove', (e) => {
-        if ((e.target as HTMLElement).matches('.piece')) {
-          e.preventDefault();
-        }
-      });
-
-      // mouse drag pieces
-      this.shadowRoot!.addEventListener('mousedown', (e) => {
-        if ((e.target as HTMLElement).closest('.square')) {
-          mousedownSquare(e as MouseEvent);
-        }
-      });
-      this.shadowRoot!.addEventListener('mousedown', (e) => {
-        if (
-          (e.target as HTMLElement).closest(
-            '.spare-pieces .piece'
-          )
-        ) {
-          mousedownSparePiece(e as MouseEvent);
-        }
-      });
-
-      // mouse enter / leave square
-      const squares = this.shadowRoot!.querySelectorAll('.square');
-      for (const square of Array.from(squares)) {
-        square.addEventListener('mouseenter', mouseenterSquare);
-        square.addEventListener('mouseleave', mouseleaveSquare);
-      }
-
-      // piece drag
-      window.addEventListener('mousemove', mousemoveWindow);
-      window.addEventListener('mouseup', mouseupWindow);
-
-      // touch drag pieces
-      if (isTouchDevice()) {
-        this._board.addEventListener('touchstart', (e) => {
-          if ((e.target as HTMLElement).closest('.square')) {
-            touchstartSquare(e);
-          }
-        });
-        this.shadowRoot!.addEventListener('touchstart', (e) => {
-          if (
-            (e.target as HTMLElement).closest(
-              '.spare-pieces .piece'
-            )
-          ) {
-            touchstartSparePiece(e as TouchEvent);
-          }
-        });
-
-        window.addEventListener('touchmove', touchmoveWindow);
-        window.addEventListener('touchend', touchendWindow);
-      }
-    };
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    addEvents();
   }
 
   private _getSquareElement(square: Location): HTMLElement {
@@ -535,10 +250,12 @@ export class ChessBoardElement extends LitElement {
         )}
       </div>
       <div
-          id="dragged-pieces"
-          style=${styleMap({
-            width: `${this._squareSize}px`,
-            height: `${this._squareSize}px`})}>
+        id="dragged-pieces"
+        style=${styleMap({
+          width: `${this._squareSize}px`,
+          height: `${this._squareSize}px`,
+        })}
+      >
         ${this._renderPiece(
           this._draggedPiece ?? '',
           undefined,
@@ -560,7 +277,10 @@ export class ChessBoardElement extends LitElement {
       ${pieces.map(
         (p) =>
           html`
-            <div>
+            <div
+              @mousedown=${this._mousedownSparePiece}
+              @touchstart=${this._touchstartSparePiece}
+            >
               ${this._renderPiece(p, undefined, false, sparePieceId(p))}
             </div>
           `
@@ -592,6 +312,10 @@ export class ChessBoardElement extends LitElement {
             id="${squareId(square)}"
             data-square="${square}"
             part="${square} ${squareColor}"
+            @mousedown=${this._mousedownSquare}
+            @mouseenter=${this._mouseenterSquare}
+            @mouseleave=${this._mouseleaveSquare}
+            @touchstart=${this._touchstartSquare}
           >
             ${this.showNotation && row === 7
               ? html`
@@ -612,7 +336,9 @@ export class ChessBoardElement extends LitElement {
       width: this._squareSize * 8 + 'px',
       height: this._squareSize * 8 + 'px',
     };
-    return html`<div id="board" style=${styleMap(styles)}>${squares}</div>`;
+    return html`
+      <div id="board" style=${styleMap(styles)}>${squares}</div>
+    `;
   }
 
   _renderPiece(
@@ -716,6 +442,206 @@ export class ChessBoardElement extends LitElement {
     // NOTE: this should never happen
     this._error(8272, 'Unable to build image source for config.pieceTheme.');
     return undefined;
+  }
+
+  // -------------------------------------------------------------------------
+  // Event Listeners
+  // -------------------------------------------------------------------------
+
+  private _mousedownSquare(e: MouseEvent) {
+    e.preventDefault();
+    // do nothing if we're not draggable. sparePieces implies draggable
+    if (!this.draggablePieces && !this.sparePieces) {
+      return;
+    }
+
+    // do nothing if there is no piece on this square
+    const squareEl = e.currentTarget as HTMLElement;
+    const square = squareEl!.getAttribute('data-square');
+    if (square === null) {
+      return;
+    }
+    if (!this._currentPosition.hasOwnProperty(square)) {
+      return;
+    }
+    this._beginDraggingPiece(
+      square,
+      this._currentPosition[square]!,
+      e.pageX,
+      e.pageY
+    );
+  }
+
+  private _mousedownSparePiece(e: MouseEvent) {
+    e.preventDefault();
+    // do nothing if sparePieces is not enabled
+    if (!this.sparePieces) {
+      return;
+    }
+    const sparePieceContainerEl = e.currentTarget as HTMLElement;
+    const pieceEl = sparePieceContainerEl.querySelector('.piece');
+    const piece = pieceEl!.getAttribute('data-piece');
+    this._beginDraggingPiece('spare', piece, e.pageX, e.pageY);
+  }
+
+  private _mouseenterSquare(e: Event) {
+    // do not fire this event if we are dragging a piece
+    // NOTE: this should never happen, but it's a safeguard
+    if (this._isDragging) {
+      return;
+    }
+
+    // get the square
+    const square = (e.currentTarget as HTMLElement).getAttribute('data-square');
+
+    // NOTE: this should never happen; defensive
+    if (!validSquare(square)) {
+      return;
+    }
+
+    // get the piece on this square
+    let piece: string | false = false;
+
+    if (this._currentPosition.hasOwnProperty(square)) {
+      piece = this._currentPosition[square]!;
+    }
+
+    this.dispatchEvent(
+      new CustomEvent('mouseover-square', {
+        bubbles: true,
+        detail: {
+          square,
+          piece,
+          position: deepCopy(this._currentPosition),
+          orientation: this.orientation,
+        },
+      })
+    );
+  }
+
+  private _mouseleaveSquare(e: Event) {
+    // do not fire this event if we are dragging a piece
+    // NOTE: this should never happen, but it's a safeguard
+    if (this._isDragging) {
+      return;
+    }
+
+    // get the square
+    const square = (e.currentTarget as HTMLElement).getAttribute('data-square');
+
+    // NOTE: this should never happen; defensive
+    if (!validSquare(square)) {
+      return;
+    }
+
+    // get the piece on this square
+    let piece: string | false = false;
+
+    if (this._currentPosition.hasOwnProperty(square)) {
+      piece = this._currentPosition[square]!;
+    }
+
+    // execute their function
+    this.dispatchEvent(
+      new CustomEvent('mouseout-square', {
+        bubbles: true,
+        detail: {
+          square,
+          piece,
+          position: deepCopy(this._currentPosition),
+          orientation: this.orientation,
+        },
+      })
+    );
+  }
+
+  private _mousemoveWindow = (e: MouseEvent) => {
+    if (this._isDragging) {
+      this._updateDraggedPiece(e.pageX, e.pageY);
+    }
+  };
+
+  private _mouseupWindow = (e: MouseEvent) => {
+    // do nothing if we are not dragging a piece
+    if (!this._isDragging) {
+      return;
+    }
+
+    // get the location
+    const location = this._isXYOnSquare(e.pageX, e.pageY);
+
+    this._stopDraggedPiece(location);
+  };
+
+  private _touchstartSquare(e: TouchEvent) {
+    // do nothing if we're not draggable. sparePieces implies draggable
+    if (!this.draggablePieces && !this.sparePieces) {
+      return;
+    }
+
+    // do nothing if there is no piece on this square
+    const squareEl = (e.target as HTMLElement).closest('[data-square]');
+    const square = squareEl!.getAttribute('data-square');
+    if (!validSquare(square)) {
+      return;
+    }
+    if (!this._currentPosition.hasOwnProperty(square)) {
+      return;
+    }
+
+    e = (e as any).originalEvent;
+    this._beginDraggingPiece(
+      square,
+      this._currentPosition[square]!,
+      e.changedTouches[0].pageX,
+      e.changedTouches[0].pageY
+    );
+  }
+
+  private _touchstartSparePiece(e: TouchEvent) {
+    // do nothing if sparePieces is not enabled
+    if (!this.sparePieces) return;
+
+    const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
+    const piece = pieceEl!.getAttribute('data-piece');
+
+    e = (e as any).originalEvent;
+    this._beginDraggingPiece(
+      'spare',
+      piece,
+      e.changedTouches[0].pageX,
+      e.changedTouches[0].pageY
+    );
+  }
+
+  private _touchmoveWindow(e: TouchEvent) {
+    // do nothing if we are not dragging a piece
+    if (!this._isDragging) {
+      return;
+    }
+
+    // prevent screen from scrolling
+    e.preventDefault();
+
+    this._updateDraggedPiece(
+      (e as any).originalEvent.changedTouches[0].pageX,
+      (e as any).originalEvent.changedTouches[0].pageY
+    );
+  }
+
+  private _touchendWindow(e: TouchEvent) {
+    // do nothing if we are not dragging a piece
+    if (!this._isDragging) {
+      return;
+    }
+
+    // get the location
+    const location = this._isXYOnSquare(
+      (e as any).originalEvent.changedTouches[0].pageX,
+      (e as any).originalEvent.changedTouches[0].pageY
+    );
+
+    this._stopDraggedPiece(location);
   }
 
   // -------------------------------------------------------------------------
@@ -825,6 +751,22 @@ export class ChessBoardElement extends LitElement {
   // -------------------------------------------------------------------------
   // Lifecycle Callbacks
   // -------------------------------------------------------------------------
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener('mousemove', this._mousemoveWindow);
+    window.addEventListener('mouseup', this._mouseupWindow);
+    window.addEventListener('touchmove', this._touchmoveWindow);
+    window.addEventListener('touchend', this._touchendWindow);
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    window.removeEventListener('mousemove', this._mousemoveWindow);
+    window.removeEventListener('mouseup', this._mouseupWindow);
+    window.removeEventListener('touchmove', this._touchmoveWindow);
+    window.removeEventListener('touchend', this._touchendWindow);
+  }
 
   updated() {
     this._draggedPieceElement.style.height = `${this._squareSize}px`;
