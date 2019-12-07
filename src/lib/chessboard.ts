@@ -258,7 +258,7 @@ export class ChessBoardElement extends LitElement {
       >
         ${this._renderPiece(
           this._draggedPiece ?? '',
-          undefined,
+          {},
           false,
           'dragged-piece'
         )}
@@ -281,7 +281,7 @@ export class ChessBoardElement extends LitElement {
               @mousedown=${this._mousedownSparePiece}
               @touchstart=${this._touchstartSparePiece}
             >
-              ${this._renderPiece(p, undefined, false, sparePieceId(p))}
+              ${this._renderPiece(p, {}, false, sparePieceId(p))}
             </div>
           `
       )}
@@ -298,7 +298,7 @@ export class ChessBoardElement extends LitElement {
         const rank = isFlipped ? row + 1 : 8 - row;
         const square = `${file}${rank}`;
         const squareColor = getSquareColor(square);
-        const piece = this._currentPosition[square];
+        let piece = this._currentPosition[square];
         const isDragSource = square === this._draggedPieceSource;
         const animation = this._animations.get(square);
         const classes = {
@@ -306,6 +306,12 @@ export class ChessBoardElement extends LitElement {
           [`square-${square}`]: true,
           highlight: isDragSource || this._highlightedSquares.has(square),
         };
+        const pieceStyles = this._getAnimationStyles(piece, animation);
+        if (!piece && animation?.type === 'clear') {
+          // Preserve the piece until the animation is complete
+          piece = animation.piece;
+        }
+
         squares.push(html`
           <div
             class="square ${classMap(classes)}"
@@ -327,7 +333,7 @@ export class ChessBoardElement extends LitElement {
                   <div class="notation numeric">${rank}</div>
                 `
               : nothing}
-            ${this._renderPiece(piece, animation, isDragSource)}
+            ${this._renderPiece(piece, pieceStyles, isDragSource)}
           </div>
         `);
       }
@@ -343,7 +349,7 @@ export class ChessBoardElement extends LitElement {
 
   _renderPiece(
     piece: Piece | undefined,
-    animation?: Animation | undefined,
+    styles: Partial<CSSStyleDeclaration>,
     isDragSource?: boolean,
     id?: string
   ) {
@@ -355,60 +361,8 @@ export class ChessBoardElement extends LitElement {
       opacity: '1',
       transitionProperty: '',
       transitionDuration: '0ms',
+      ...styles,
     };
-
-    if (animation) {
-      if (
-        piece &&
-        (animation.type === 'move-start' ||
-          (animation.type === 'add-start' && this.draggablePieces))
-      ) {
-        // Position the moved piece absolutely at the source
-        const srcSquare =
-          animation.type === 'move-start'
-            ? this._getSquareElement(animation.source)
-            : this._getSparePieceElement(piece);
-        const destSquare =
-          animation.type === 'move-start'
-            ? this._getSquareElement(animation.destination)
-            : this._getSquareElement(animation.square);
-
-        const srcSquareRect = srcSquare.getBoundingClientRect();
-        const destSquareRect = destSquare.getBoundingClientRect();
-
-        style.position = 'absolute';
-        style.left = `${srcSquareRect.left - destSquareRect.left}px`;
-        style.top = `${srcSquareRect.top - destSquareRect.top}px`;
-        style.width = `${this._squareSize}px`;
-        style.height = `${this._squareSize}px`;
-      } else if (
-        piece &&
-        (animation.type === 'move' ||
-          (animation.type === 'add' && this.draggablePieces))
-      ) {
-        // Transition the moved piece to the destination
-        style.position = 'absolute';
-        style.transitionProperty = 'top, left';
-        style.transitionDuration = `${speedToMS(this.moveSpeed)}ms`;
-        style.top = `0`;
-        style.left = `0`;
-        style.width = `${this._squareSize}px`;
-        style.height = `${this._squareSize}px`;
-      } else if (!piece && animation.type === 'clear') {
-        // Preserve and transition a removed piece to opacity 0
-        piece = animation.piece;
-        style.transitionProperty = 'opacity';
-        style.transitionDuration = `${speedToMS(this.trashSpeed)}ms`;
-        style.opacity = '0';
-      } else if (piece && animation.type === 'add-start') {
-        // Initialize an added piece to opacity 0
-        style.opacity = '0';
-      } else if (piece && animation.type === 'add') {
-        // Transition an added piece to opacity 1
-        style.transitionProperty = 'opacity';
-        style.transitionDuration = `${speedToMS(this.appearSpeed)}ms`;
-      }
-    }
 
     if (piece === undefined) {
       return nothing;
@@ -428,6 +382,79 @@ export class ChessBoardElement extends LitElement {
         style="${styleMap(style as StyleInfo)}"
       />
     `;
+  }
+
+  private _getAnimationStyles(
+    piece: Piece | undefined,
+    animation?: Animation | undefined
+  ): Partial<CSSStyleDeclaration> {
+    if (animation) {
+      if (
+        piece &&
+        (animation.type === 'move-start' ||
+          (animation.type === 'add-start' && this.draggablePieces))
+      ) {
+        // Position the moved piece absolutely at the source
+        const srcSquare =
+          animation.type === 'move-start'
+            ? this._getSquareElement(animation.source)
+            : this._getSparePieceElement(piece);
+        const destSquare =
+          animation.type === 'move-start'
+            ? this._getSquareElement(animation.destination)
+            : this._getSquareElement(animation.square);
+
+        const srcSquareRect = srcSquare.getBoundingClientRect();
+        const destSquareRect = destSquare.getBoundingClientRect();
+
+        return {
+          position: 'absolute',
+          left: `${srcSquareRect.left - destSquareRect.left}px`,
+          top: `${srcSquareRect.top - destSquareRect.top}px`,
+          width: `${this._squareSize}px`,
+          height: `${this._squareSize}px`,
+        };
+      }
+      if (
+        piece &&
+        (animation.type === 'move' ||
+          (animation.type === 'add' && this.draggablePieces))
+      ) {
+        // Transition the moved piece to the destination
+        return {
+          position: 'absolute',
+          transitionProperty: 'top, left',
+          transitionDuration: `${speedToMS(this.moveSpeed)}ms`,
+          top: `0`,
+          left: `0`,
+          width: `${this._squareSize}px`,
+          height: `${this._squareSize}px`,
+        };
+      }
+      if (!piece && animation.type === 'clear') {
+        // Preserve and transition a removed piece to opacity 0
+        piece = animation.piece;
+        return {
+          transitionProperty: 'opacity',
+          transitionDuration: `${speedToMS(this.trashSpeed)}ms`,
+          opacity: '0',
+        };
+      }
+      if (piece && animation.type === 'add-start') {
+        // Initialize an added piece to opacity 0
+        return {
+          opacity: '0',
+        };
+      }
+      if (piece && animation.type === 'add') {
+        // Transition an added piece to opacity 1
+        return {
+          transitionProperty: 'opacity',
+          transitionDuration: `${speedToMS(this.appearSpeed)}ms`,
+        };
+      }
+    }
+    return {};
   }
 
   private _buildPieceImgSrc(piece: string) {
