@@ -70,14 +70,10 @@ const examplesGroups = [
 const homepageExample1 = ''
 
 const homepageExample2 = `
-var board2 = Chessboard('board2', {
-  draggable: true,
-  dropOffBoard: 'trash',
-  sparePieces: true
-})
+const board2 = document.querySelector('#board2');
 
-$('#startBtn').on('click', board2.start)
-$('#clearBtn').on('click', board2.clear)`.trim()
+$('#startBtn').on('click', () => board2.start())
+$('#clearBtn').on('click', () => board2.clear())`.trim()
 
 function writeSrcFiles () {
   fs.copyFileSync('lib/chessboard.js', 'website/js/chessboard.js');
