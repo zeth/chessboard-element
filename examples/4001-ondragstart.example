@@ -23,7 +23,7 @@ board.addEventListener('drag-start', (e) => {
   console.log('Drag started:')
   console.log('Source: ' + source)
   console.log('Piece: ' + piece)
-  console.log('Position: ' + Chessboard.objToFen(position))
+  console.log('Position: ' + chessUtils.objToFen(position))
   console.log('Orientation: ' + orientation)
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 });

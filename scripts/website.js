@@ -234,7 +234,10 @@ function buildExamplesNavHTML () {
 }
 
 function buildExamplesJS () {
-  let txt = 'window.CHESSBOARD_EXAMPLES = {}\n\n'
+  let txt = `
+import * as chessUtils from '../lib/chess-utils.js';
+const CHESSBOARD_EXAMPLES = window.CHESSBOARD_EXAMPLES = {};
+  `;
 
   examplesArr.forEach(function (ex) {
     txt += 'CHESSBOARD_EXAMPLES["' + ex.id + '"] = {\n' +
