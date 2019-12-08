@@ -1,17 +1,14 @@
 {
-  "author": "Chris Oakman <chris@oakmac.com> (http://chrisoakman.com/)",
-  "name": "@chrisoakman/chessboardjs",
+  "author": "Justin Fagnani <justin@fagnani.com> (http://justinfagnani.com/)",
+  "name": "@justinfagnani/chessboardjs",
   "description": "JavaScript chessboard widget",
   "homepage": "https://chessboardjs.com",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "git://github.com/oakmac/chessboardjs.git"
+    "url": "git://github.com/justinfagnani/chessboardjs.git"
   },
-  "files": [
-    "dist/"
-  ],
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.10.0",
     "@typescript-eslint/parser": "^2.10.0",
