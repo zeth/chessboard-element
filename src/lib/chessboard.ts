@@ -244,7 +244,7 @@ export class ChessBoardElement extends LitElement {
   })
   sparePieces = false;
 
-  @query('#dragged-piece')
+  @query('[part~="dragged-piece"]')
   private _draggedPieceElement!: HTMLElement;
 
   private _highlightedSquares = new Set();
@@ -275,13 +275,13 @@ export class ChessBoardElement extends LitElement {
 
   render() {
     return html`
-      <div class="spare-pieces">
+      <div part="spare-pieces">
         ${this._renderSparePieces(
           this.orientation === 'white' ? 'black' : 'white'
         )}
       </div>
       ${this._renderBoard()}
-      <div class="spare-pieces">
+      <div part="spare-pieces">
         ${this._renderSparePieces(
           this.orientation === 'white' ? 'white' : 'black'
         )}
@@ -304,12 +304,17 @@ export class ChessBoardElement extends LitElement {
     }
 
     const pieces = color === 'black' ? blackPieces : whitePieces;
+    // The empty <div>s below are placeholders to get the shelf to line up with
+    // the board's grid. Another option would be to try to use the same grid,
+    // either with a single container, or subgrid/display:contents when those
+    // are available.
     return html`
       <div></div>
       ${pieces.map(
         (p) =>
           html`
             <div
+              id="spare-${p}"
               @mousedown=${this._mousedownSparePiece}
               @touchstart=${this._touchstartSparePiece}
             >
@@ -370,6 +375,7 @@ export class ChessBoardElement extends LitElement {
       this._dragState?.piece ?? '',
       styles,
       false,
+      undefined,
       'dragged-piece'
     );
   }
@@ -386,11 +392,10 @@ export class ChessBoardElement extends LitElement {
         let piece = this._currentPosition[square];
         const isDragSource = square === this._dragState?.source;
         const animation = this._animations.get(square);
-        const classes = {
-          [squareColor]: true,
-          [`square-${square}`]: true,
-          highlight: isDragSource || this._highlightedSquares.has(square),
-        };
+        const highlight =
+          isDragSource || this._highlightedSquares.has(square)
+            ? 'highlight'
+            : '';
         const pieceStyles = this._getAnimationStyles(piece, animation);
         if (!piece && animation?.type === 'clear') {
           // Preserve the piece until the animation is complete
@@ -399,10 +404,10 @@ export class ChessBoardElement extends LitElement {
 
         squares.push(html`
           <div
-            class="square ${classMap(classes)}"
-            id="${squareId(square)}"
-            data-square="${square}"
-            part="${square} ${squareColor}"
+            class="square"
+            id=${squareId(square)}
+            data-square=${square}
+            part="square ${square} ${squareColor} ${highlight}"
             @mousedown=${this._mousedownSquare}
             @mouseenter=${this._mouseenterSquare}
             @mouseleave=${this._mouseleaveSquare}
@@ -410,12 +415,12 @@ export class ChessBoardElement extends LitElement {
           >
             ${this.showNotation && row === 7
               ? html`
-                  <div class="notation alpha">${file}</div>
+                  <div part="notation alpha">${file}</div>
                 `
               : nothing}
             ${this.showNotation && col === 0
               ? html`
-                  <div class="notation numeric">${rank}</div>
+                  <div part="notation numeric">${rank}</div>
                 `
               : nothing}
             ${this._renderPiece(piece, pieceStyles, isDragSource)}
@@ -428,7 +433,7 @@ export class ChessBoardElement extends LitElement {
       height: this._squareSize * 8 + 'px',
     };
     return html`
-      <div id="board" style=${styleMap(styles)}>${squares}</div>
+      <div part="board" style=${styleMap(styles)}>${squares}</div>
     `;
   }
 
@@ -436,7 +441,8 @@ export class ChessBoardElement extends LitElement {
     piece: Piece | undefined,
     styles: Partial<CSSStyleDeclaration>,
     isDragSource?: boolean,
-    id?: string
+    id?: string,
+    part?: string,
   ) {
     if (isDragSource) {
       return nothing;
@@ -462,7 +468,7 @@ export class ChessBoardElement extends LitElement {
       <img
         id="${ifDefined(id)}"
         src="${ifDefined(src)}"
-        class="piece"
+        part="piece ${part ?? ''}"
         data-piece="${piece}"
         style="${styleMap(style as StyleInfo)}"
       />
@@ -552,7 +558,7 @@ export class ChessBoardElement extends LitElement {
     }
 
     // NOTE: this should never happen
-    this._error(8272, 'Unable to build image source for config.pieceTheme.');
+    this._error(8272, 'Unable to build image source for pieceTheme.');
     return undefined;
   }
 
@@ -591,7 +597,7 @@ export class ChessBoardElement extends LitElement {
       return;
     }
     const sparePieceContainerEl = e.currentTarget as HTMLElement;
-    const pieceEl = sparePieceContainerEl.querySelector('.piece');
+    const pieceEl = sparePieceContainerEl.querySelector('[part~=piece]');
     const piece = pieceEl!.getAttribute('data-piece')!;
     this._beginDraggingPiece('spare', piece, e.pageX, e.pageY);
   }

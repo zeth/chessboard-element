@@ -7,7 +7,7 @@ export const styles = css`
     display: block;
   }
 
-  #board {
+  [part~='board'] {
     border: 2px solid #404040;
     box-sizing: border-box;
     display: grid;
@@ -15,7 +15,7 @@ export const styles = css`
     grid-template-rows: repeat(8, 12.5%);
   }
 
-  .square {
+  [part~='square'] {
     position: relative;
 
     /* disable any native browser highlighting */
@@ -27,51 +27,51 @@ export const styles = css`
     user-select: none;
   }
 
-  .piece {
+  [part~='piece'] {
     width: 100%;
     height: 100%;
     z-index: 10;
   }
 
-  .spare-pieces {
+  [part~='spare-pieces'] {
     display: grid;
     position: relative;
     padding: 0 2px;
     grid-template-columns: repeat(8, 12.5%);
   }
 
-  #dragged-piece {
+  [part~='dragged-piece'] {
     display: none;
     position: absolute;
   }
 
-  .white {
+  [part~='white'] {
     background-color: #f0d9b5;
     color: #b58863;
   }
 
-  .black {
+  [part~='black'] {
     background-color: #b58863;
     color: #f0d9b5;
   }
 
-  .highlight {
+  [part~='highlight'] {
     box-shadow: inset 0 0 3px 3px yellow;
   }
 
-  .notation {
+  [part~='notation'] {
     cursor: default;
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     font-size: 14px;
     position: absolute;
   }
 
-  .alpha {
+  [part~='alpha'] {
     bottom: 1px;
     right: 3px;
   }
 
-  .numeric {
+  [part~='numeric'] {
     top: 2px;
     left: 2px;
   }
