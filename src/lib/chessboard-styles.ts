@@ -1,6 +1,6 @@
 /*! chessboard.js v@VERSION | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
 
-import { css } from 'lit-element';
+import {css} from 'lit-element';
 
 export const styles = css`
   :host {
@@ -38,6 +38,11 @@ export const styles = css`
     position: relative;
     padding: 0 2px;
     grid-template-columns: repeat(8, 12.5%);
+  }
+
+  #dragged-piece {
+    display: none;
+    position: absolute;
   }
 
   .white {

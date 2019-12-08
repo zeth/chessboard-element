@@ -90,6 +90,38 @@ export type Animation =
       piece: string;
     };
 
+type DraggingDragState = {
+  state: 'dragging';
+  x: number;
+  y: number;
+  piece: Piece;
+  location: Location | 'offboard' | 'spare';
+  source: Location | 'spare';
+};
+type SnapbackDragState = {
+  state: 'snapback';
+  piece: Piece;
+  source: Location;
+};
+type TrashDragState = {
+  state: 'trash';
+  x: number;
+  y: number;
+  piece: Piece;
+};
+type SnapDragState = {
+  state: 'snap';
+  piece: Piece;
+  location: Location;
+  source: Location;
+};
+
+type DragState =
+  | DraggingDragState
+  | SnapbackDragState
+  | TrashDragState
+  | SnapDragState;
+
 // ---------------------------------------------------------------------------
 // Predicates
 // ---------------------------------------------------------------------------
@@ -98,6 +130,14 @@ function validAnimationSpeed(speed: unknown): speed is AnimationSpeed {
   if (speed === 'fast' || speed === 'slow') return true;
   if (!isInteger(speed)) return false;
   return speed >= 0;
+}
+
+function assertIsDragging(
+  dragState: DragState | undefined
+): asserts dragState is DraggingDragState {
+  if (dragState?.state !== 'dragging') {
+    throw new Error(`unexpected drag state ${JSON.stringify(dragState)}`);
+  }
 }
 
 const speedToMS = (speed: AnimationSpeed) => {
@@ -120,7 +160,7 @@ const wikipediaPiece = (p: string) => `img/chesspieces/wikipedia/${p}.png`;
 @customElement('chess-board')
 export class ChessBoardElement extends LitElement {
   static styles = styles;
-  
+
   /**
    * The current position of the board, as a `PositionObject`. This property may
    * be set externally, but only to valid `PositionObject`s. The value is copied
@@ -212,11 +252,7 @@ export class ChessBoardElement extends LitElement {
 
   private _currentPosition: PositionObject = {};
 
-  private _draggedPiece: string | null = null;
-  private _draggedPieceLocation: Location | 'offboard' | 'spare' | null = null;
-  private _draggedPieceSource: string | null = null;
-  private _isDragging = false;
-  private _dragPosition?: [number, number];
+  private _dragState?: DragState;
 
   private get _squareSize() {
     // Note: this isn't cached, but is called during user interactions, so we
@@ -254,7 +290,8 @@ export class ChessBoardElement extends LitElement {
         style=${styleMap({
           width: `${this._squareSize}px`,
           height: `${this._squareSize}px`,
-        })}>
+        })}
+      >
         ${this._renderDraggedPiece()}
       </div>
     `;
@@ -284,29 +321,52 @@ export class ChessBoardElement extends LitElement {
   }
 
   private _renderDraggedPiece() {
-    let styles: Partial<CSSStyleDeclaration> = {
+    const styles: Partial<CSSStyleDeclaration> = {
       height: `${this._squareSize}px`,
       width: `${this._squareSize}px`,
     };
-    if (this._isDragging) {
-      const [x, y] = this._dragPosition!;
-      styles = {
-        ...styles,
-        opacity: '1',
-        display: '',
-        position: 'absolute',
-        left: `${x - this._squareSize / 2}px`,
-        top: `${y - this._squareSize / 2}px`,
-      };
-    } else {
-      styles = {
-        ...styles,
-        display: 'none',
-      };
+    const dragState = this._dragState;
+    if (dragState !== undefined) {
+      styles.display = 'block';
+      if (dragState.state === 'dragging') {
+        const {x, y} = dragState;
+        Object.assign(styles, {
+          top: `${y - this._squareSize / 2}px`,
+          left: `${x - this._squareSize / 2}px`,
+        });
+      } else if (dragState.state === 'snapback') {
+        const {source} = dragState;
+        const square = this._getSquareElement(source);
+        const rect = square.getBoundingClientRect();
+        Object.assign(styles, {
+          transitionProperty: 'top, left',
+          transitionDuration: `${speedToMS(this.snapbackSpeed)}ms`,
+          top: `${rect.top + document.body.scrollTop}px`,
+          left: `${rect.left + document.body.scrollLeft}px`,
+        });
+      } else if (dragState.state === 'trash') {
+        const {x, y} = dragState;
+        Object.assign(styles, {
+          transitionProperty: 'opacity',
+          transitionDuration: `${speedToMS(this.trashSpeed)}ms`,
+          opacity: '0',
+          top: `${y - this._squareSize / 2}px`,
+          left: `${x - this._squareSize / 2}px`,
+        });
+      } else if (dragState.state === 'snap') {
+        const targetSquare = this._getSquareElement(dragState.location);
+        const rect = targetSquare.getBoundingClientRect();
+        Object.assign(styles, {
+          transitionProperty: 'top, left',
+          transitionDuration: `${speedToMS(this.snapSpeed)}ms`,
+          top: `${rect.top + document.body.scrollTop}px`,
+          left: `${rect.left + document.body.scrollLeft}px`,
+        });
+      }
     }
 
     return this._renderPiece(
-      this._draggedPiece ?? '',
+      this._dragState?.piece ?? '',
       styles,
       false,
       'dragged-piece'
@@ -323,7 +383,8 @@ export class ChessBoardElement extends LitElement {
         const square = `${file}${rank}`;
         const squareColor = getSquareColor(square);
         let piece = this._currentPosition[square];
-        const isDragSource = square === this._draggedPieceSource;
+        const isDragSource =
+          square === (this._dragState as DraggingDragState)?.source;
         const animation = this._animations.get(square);
         const classes = {
           [squareColor]: true,
@@ -531,14 +592,14 @@ export class ChessBoardElement extends LitElement {
     }
     const sparePieceContainerEl = e.currentTarget as HTMLElement;
     const pieceEl = sparePieceContainerEl.querySelector('.piece');
-    const piece = pieceEl!.getAttribute('data-piece');
+    const piece = pieceEl!.getAttribute('data-piece')!;
     this._beginDraggingPiece('spare', piece, e.pageX, e.pageY);
   }
 
   private _mouseenterSquare(e: Event) {
     // do not fire this event if we are dragging a piece
     // NOTE: this should never happen, but it's a safeguard
-    if (this._isDragging) {
+    if (this._dragState !== undefined) {
       return;
     }
 
@@ -573,7 +634,7 @@ export class ChessBoardElement extends LitElement {
   private _mouseleaveSquare(e: Event) {
     // do not fire this event if we are dragging a piece
     // NOTE: this should never happen, but it's a safeguard
-    if (this._isDragging) {
+    if (this._dragState !== undefined) {
       return;
     }
 
@@ -606,15 +667,15 @@ export class ChessBoardElement extends LitElement {
     );
   }
 
-  private _mousemoveWindow = (e: MouseEvent) => {    
-    if (this._isDragging) {
+  private _mousemoveWindow = (e: MouseEvent) => {
+    if (this._dragState?.state === 'dragging') {
       this._updateDraggedPiece(e.pageX, e.pageY);
     }
   };
 
   private _mouseupWindow = (e: MouseEvent) => {
     // do nothing if we are not dragging a piece
-    if (!this._isDragging) {
+    if (!(this._dragState?.state === 'dragging')) {
       return;
     }
 
@@ -654,7 +715,7 @@ export class ChessBoardElement extends LitElement {
     if (!this.sparePieces) return;
 
     const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
-    const piece = pieceEl!.getAttribute('data-piece');
+    const piece = pieceEl!.getAttribute('data-piece')!;
 
     e = (e as any).originalEvent;
     this._beginDraggingPiece(
@@ -667,7 +728,7 @@ export class ChessBoardElement extends LitElement {
 
   private _touchmoveWindow(e: TouchEvent) {
     // do nothing if we are not dragging a piece
-    if (!this._isDragging) {
+    if (!(this._dragState?.state === 'dragging')) {
       return;
     }
 
@@ -682,7 +743,7 @@ export class ChessBoardElement extends LitElement {
 
   private _touchendWindow(e: TouchEvent) {
     // do nothing if we are not dragging a piece
-    if (!this._isDragging) {
+    if (!(this._dragState?.state === 'dragging')) {
       return;
     }
 
@@ -865,135 +926,142 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate('_highlightedSquares');
   }
 
-  private _removeSquareHighlights() {
-    this._highlightedSquares.clear();
-    this.requestUpdate('_highlightedSquares');
-  }
+  private async _snapbackDraggedPiece() {
+    assertIsDragging(this._dragState);
+    const {source, piece} = this._dragState!;
 
-  private _snapbackDraggedPiece() {
     // there is no "snapback" for spare pieces
-    if (this._draggedPieceSource === 'spare') {
-      this._trashDraggedPiece();
-      return;
+    if (source === 'spare') {
+      return this._trashDraggedPiece();
     }
 
-    this._removeSquareHighlights();
-
-    // animation complete
-    const complete = () => {
-      this._draggedPieceElement.removeEventListener('transitionend', complete);
-
-      this.requestUpdate();
-
-      this.dispatchEvent(
-        new CustomEvent('snapback-end', {
-          bubbles: true,
-          detail: {
-            piece: this._draggedPiece,
-            square: this._draggedPieceSource,
-            position: deepCopy(this._currentPosition),
-            orientation: this.orientation,
-          },
-        })
-      );
+    this._dragState = {
+      state: 'snapback',
+      piece,
+      source,
     };
 
-    // get source square position
-    const square = this._getSquareElement(this._draggedPieceSource!);
-    const rect = square.getBoundingClientRect();
+    // Wait for a paint
+    await this.requestUpdate();
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // animate the piece to the target square
-    this._draggedPieceElement.style.transitionProperty = 'top, left';
-    this._draggedPieceElement.style.transitionDuration = `${this.snapbackSpeed}ms`;
-    this._draggedPieceElement.style.top = `${rect.top +
-      document.body.scrollTop}px`;
-    this._draggedPieceElement.style.left = `${rect.left +
-      document.body.scrollLeft}px`;
-    this._draggedPieceElement.addEventListener('transitionend', complete);
+    return new Promise((resolve) => {
+      const transitionComplete = () => {
+        this._draggedPieceElement.removeEventListener(
+          'transitionend',
+          transitionComplete
+        );
+        this.requestUpdate();
+        resolve();
 
-    // set state
-    this._isDragging = false;
+        this.dispatchEvent(
+          new CustomEvent('snapback-end', {
+            bubbles: true,
+            detail: {
+              piece: piece,
+              square: source,
+              position: deepCopy(this._currentPosition),
+              orientation: this.orientation,
+            },
+          })
+        );
+      };
+      this._draggedPieceElement.addEventListener(
+        'transitionend',
+        transitionComplete
+      );
+    });
   }
 
-  private _trashDraggedPiece() {
-    this._removeSquareHighlights();
+  private async _trashDraggedPiece() {
+    assertIsDragging(this._dragState);
+    const {source, piece} = this._dragState!;
 
     // remove the source piece
     const newPosition = deepCopy(this._currentPosition);
-    delete newPosition[this._draggedPieceSource!];
+    delete newPosition[source];
     this._setCurrentPosition(newPosition);
 
-    // redraw the position
-    this.requestUpdate();
+    this._dragState = {
+      state: 'trash',
+      piece,
+      x: this._dragState.x,
+      y: this._dragState.y,
+    };
 
-    // hide the dragged piece
-    this._draggedPieceElement.style.transitionProperty = 'opacity';
-    this._draggedPieceElement.style.transitionDuration = `${speedToMS(
-      this.trashSpeed
-    )}ms`;
-    this._draggedPieceElement.style.opacity = '0';
+    // Wait for a paint
+    await this.requestUpdate();
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // set state
-    this._isDragging = false;
+    return new Promise((resolve) => {
+      const transitionComplete = () => {
+        this._draggedPieceElement.removeEventListener(
+          'transitionend',
+          transitionComplete
+        );
+        this.requestUpdate();
+        resolve();
+      };
+      this._draggedPieceElement.addEventListener(
+        'transitionend',
+        transitionComplete
+      );
+    });
   }
 
-  private _dropDraggedPieceOnSquare(square: string) {
-    this._removeSquareHighlights();
+  private async _dropDraggedPieceOnSquare(square: string) {
+    assertIsDragging(this._dragState);
+    const {source, piece} = this._dragState!;
 
     // update position
     const newPosition = deepCopy(this._currentPosition);
-    delete newPosition[this._draggedPieceSource!];
-    newPosition[square] = this._draggedPiece;
+    delete newPosition[source];
+    newPosition[square] = piece;
     this._setCurrentPosition(newPosition);
 
-    // get target square information
-    const targetSquare = this._getSquareElement(square);
-    const rect = targetSquare.getBoundingClientRect();
-
-    // animation complete
-    const onAnimationComplete = () => {
-      this._draggedPieceElement.removeEventListener(
-        'transitionend',
-        onAnimationComplete
-      );
-
-      this.requestUpdate();
-      this._draggedPieceElement.style.display = 'none';
-      this._draggedPieceElement.style.transitionProperty = '';
-      this._draggedPieceElement.style.transitionDuration = '0ms';
-
-      // Fire the snap-end event
-      this.dispatchEvent(
-        new CustomEvent('snap-end', {
-          bubbles: true,
-          detail: {
-            source: this._draggedPieceSource,
-            square,
-            piece: this._draggedPiece,
-          },
-        })
-      );
+    this._dragState = {
+      state: 'snap',
+      piece,
+      location: square,
+      source: square,
     };
 
-    // snap the piece to the target square
-    this._draggedPieceElement.style.transitionProperty = 'top, left';
-    this._draggedPieceElement.style.transitionDuration = `${this.snapSpeed}ms`;
-    this._draggedPieceElement.style.top = `${rect.top +
-      document.body.scrollTop}px`;
-    this._draggedPieceElement.style.left = `${rect.left +
-      document.body.scrollLeft}px`;
-    this._draggedPieceElement.addEventListener(
-      'transitionend',
-      onAnimationComplete
-    );
+    // Wait for a paint
+    await this.requestUpdate();
+    await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // set state
-    this._isDragging = false;
+    return new Promise((resolve) => {
+      const transitionComplete = () => {
+        this._draggedPieceElement.removeEventListener(
+          'transitionend',
+          transitionComplete
+        );
+
+        this.requestUpdate();
+        resolve();
+
+        // Fire the snap-end event
+        this.dispatchEvent(
+          new CustomEvent('snap-end', {
+            bubbles: true,
+            detail: {
+              source,
+              square,
+              piece,
+            },
+          })
+        );
+      };
+      this._draggedPieceElement.addEventListener(
+        'transitionend',
+        transitionComplete
+      );
+    });
   }
 
   private _beginDraggingPiece(
     source: string,
-    piece: string | null,
+    piece: string,
     x: number,
     y: number
   ) {
@@ -1014,37 +1082,37 @@ export class ChessBoardElement extends LitElement {
     }
 
     // set state
-    this._isDragging = true;
-    this._dragPosition = [x, y];
-    this._draggedPiece = piece;
-    this._draggedPieceSource = source;
-
-    // if the piece came from spare pieces, location is offboard
-    if (source === 'spare') {
-      this._draggedPieceLocation = 'offboard';
-    } else {
-      this._draggedPieceLocation = source;
-    }
+    this._dragState = {
+      state: 'dragging',
+      x,
+      y,
+      piece,
+      // if the piece came from spare pieces, location is offboard
+      location: source === 'spare' ? 'offboard' : source,
+      source,
+    };
     this.requestUpdate();
   }
 
   private _updateDraggedPiece(x: number, y: number) {
-    this.requestUpdate();
+    assertIsDragging(this._dragState);
 
     // put the dragged piece over the mouse cursor
-    this._dragPosition = [x, y];
+    this._dragState.x = x;
+    this._dragState.y = y;
 
-    // get location
+    this.requestUpdate();
+
     const location = this._isXYOnSquare(x, y);
 
-    // do nothing if the location has not changed
-    if (location === this._draggedPieceLocation) {
+    // do nothing more if the location has not changed
+    if (location === this._dragState.location) {
       return;
     }
 
     // remove highlight from previous square
-    if (validSquare(this._draggedPieceLocation)) {
-      this._highlightSquare(this._draggedPieceLocation, false);
+    if (validSquare(this._dragState.location)) {
+      this._highlightSquare(this._dragState.location, false);
     }
 
     // add highlight to new square
@@ -1057,9 +1125,9 @@ export class ChessBoardElement extends LitElement {
         bubbles: true,
         detail: {
           newLocation: location,
-          oldLocation: this._draggedPieceLocation,
-          source: this._draggedPieceSource,
-          piece: this._draggedPiece,
+          oldLocation: this._dragState.location,
+          source: this._dragState.source,
+          piece: this._dragState.piece,
           position: deepCopy(this._currentPosition),
           orientation: this.orientation,
         },
@@ -1067,50 +1135,47 @@ export class ChessBoardElement extends LitElement {
     );
 
     // update state
-    this._draggedPieceLocation = location;
+    this._dragState.location = location;
   }
 
-  private _stopDraggedPiece(location: Location | 'offboard') {
+  private async _stopDraggedPiece(location: Location | 'offboard') {
+    assertIsDragging(this._dragState);
+    const {source, piece} = this._dragState!;
+
     // determine what the action should be
     let action: Action = 'drop';
     if (location === 'offboard') {
       action = this.dropOffBoard === 'trash' ? 'trash' : 'snapback';
     }
 
-    // run their onDrop function, which can potentially change the drop action
     const newPosition = deepCopy(this._currentPosition);
-
-    // source piece is a spare piece and position is off the board
-    // if (draggedPieceSource === 'spare' && location === 'offboard') {...}
-    // position has not changed; do nothing
-
-    // source piece is a spare piece and position is on the board
-    if (this._draggedPieceSource === 'spare' && validSquare(location)) {
-      // add the piece to the board
-      newPosition[location] = this._draggedPiece;
-    }
-
-    // source piece was on the board and position is off the board
-    if (validSquare(this._draggedPieceSource) && location === 'offboard') {
-      // remove the piece from the board
-      delete newPosition[this._draggedPieceSource];
-    }
-
-    // source piece was on the board and position is on the board
-    if (validSquare(this._draggedPieceSource) && validSquare(location)) {
-      // move the piece
-      delete newPosition[this._draggedPieceSource];
-      newPosition[location] = this._draggedPiece;
-    }
-
     const oldPosition = deepCopy(this._currentPosition);
 
+    // source piece is a spare piece and position is on the board
+    if (source === 'spare' && validSquare(location)) {
+      // add the piece to the board
+      newPosition[location] = piece;
+    }
+
+    // source piece was on the board
+    if (validSquare(source)) {
+      // remove the piece from the board
+      delete newPosition[source];
+      // new position is on the board
+      if (validSquare(location)) {
+        // move the piece
+        newPosition[location] = piece;
+      }
+    }
+
+    // Fire the drop event
+    // Listeners can potentially change the drop action
     const dropEvent = new CustomEvent('drop', {
       bubbles: true,
       detail: {
-        source: this._draggedPieceSource,
+        source,
         target: location,
-        piece: this._draggedPiece,
+        piece,
         newPosition,
         oldPosition,
         orientation: this.orientation,
@@ -1121,20 +1186,22 @@ export class ChessBoardElement extends LitElement {
     });
     this.dispatchEvent(dropEvent);
 
+    this._highlightedSquares.clear();
+
     // do it!
     if (action === 'snapback') {
-      this._snapbackDraggedPiece();
+      await this._snapbackDraggedPiece();
     } else if (action === 'trash') {
-      this._trashDraggedPiece();
+      await this._trashDraggedPiece();
     } else if (action === 'drop') {
-      this._dropDraggedPieceOnSquare(location);
+      await this._dropDraggedPieceOnSquare(location);
     }
 
     // clear state
-    this._isDragging = false;
-    this._dragPosition = undefined;
-    this._draggedPiece = null;
-    this._draggedPieceSource = null;
+    this._dragState = undefined;
+
+    // Render the final non-dragging state
+    this.requestUpdate();
   }
 
   // -------------------------------------------------------------------------
