@@ -1,5 +1,6 @@
+import EXAMPLES from './generated-examples.js';
+
 const $ = window.jQuery
-const EXAMPLES = window.CHESSBOARD_EXAMPLES
 const prettyPrint = window.prettyPrint
 
 function htmlEscape (str) {

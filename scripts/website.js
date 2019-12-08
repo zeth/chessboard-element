@@ -104,13 +104,14 @@ function writeExamplesPage () {
 
   const html = mustache.render(examplesTemplate, {
     chessboardJsScript: chessboardJsScript,
-    examplesJavaScript: buildExamplesJS(),
+    // examplesJavaScript: buildExamplesJS(),
     footer: footerTemplate,
     head: headHTML,
     header: headerHTML,
     nav: buildExamplesNavHTML()
   })
   fs.writeFileSync('website/examples.html', html, encoding)
+  fs.writeFileSync('website/js/generated-examples.js', buildExamplesJS(), encoding);
 }
 
 const configTableRowsHTML = docs.config.reduce(function (html, itm) {
@@ -235,12 +236,13 @@ function buildExamplesNavHTML () {
 
 function buildExamplesJS () {
   let txt = `
-import * as chessUtils from '../lib/chess-utils.js';
-const CHESSBOARD_EXAMPLES = window.CHESSBOARD_EXAMPLES = {};
+import * as chessUtils from '../../lib/chess-utils.js';
+export const EXAMPLES = {};
+export default EXAMPLES;
   `;
 
   examplesArr.forEach(function (ex) {
-    txt += 'CHESSBOARD_EXAMPLES["' + ex.id + '"] = {\n' +
+    txt += 'EXAMPLES["' + ex.id + '"] = {\n' +
       '  description: ' + JSON.stringify(ex.description) + ',\n' +
       '  html: ' + JSON.stringify(ex.html) + ',\n' +
       '  name: ' + JSON.stringify(ex.name) + ',\n' +
