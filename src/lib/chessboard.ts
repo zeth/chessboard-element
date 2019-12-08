@@ -108,6 +108,7 @@ type TrashDragState = {
   x: number;
   y: number;
   piece: Piece;
+  source: Location;
 };
 type SnapDragState = {
   state: 'snap';
@@ -383,8 +384,7 @@ export class ChessBoardElement extends LitElement {
         const square = `${file}${rank}`;
         const squareColor = getSquareColor(square);
         let piece = this._currentPosition[square];
-        const isDragSource =
-          square === (this._dragState as DraggingDragState)?.source;
+        const isDragSource = square === this._dragState?.source;
         const animation = this._animations.get(square);
         const classes = {
           [squareColor]: true,
@@ -456,7 +456,7 @@ export class ChessBoardElement extends LitElement {
       style.display = 'none';
     }
 
-    const src = piece === '' ? undefined : this._buildPieceImgSrc(piece);
+    const src = piece === '' ? undefined : this._getPieceImgSrc(piece);
 
     return html`
       <img
@@ -542,7 +542,7 @@ export class ChessBoardElement extends LitElement {
     return {};
   }
 
-  private _buildPieceImgSrc(piece: string) {
+  private _getPieceImgSrc(piece: string) {
     if (isFunction(this.pieceTheme)) {
       return this.pieceTheme(piece);
     }
@@ -760,7 +760,7 @@ export class ChessBoardElement extends LitElement {
   // Public Methods
   // -------------------------------------------------------------------------
 
-  setPosition(position: Position, useAnimation?: boolean) {
+  setPosition(position: Position, useAnimation: boolean = true) {
     position = normalizePozition(position);
 
     // validate position object
@@ -772,11 +772,6 @@ export class ChessBoardElement extends LitElement {
       );
     }
 
-    // default for useAnimations is true
-    if (useAnimation !== false) {
-      useAnimation = true;
-    }
-
     if (useAnimation) {
       // start the animations
       const animations = this._calculateAnimations(
@@ -784,15 +779,9 @@ export class ChessBoardElement extends LitElement {
         position
       );
       this._doAnimations(animations, this._currentPosition, position);
-
-      // set the new position
-      this._setCurrentPosition(position);
-      this.requestUpdate();
-    } else {
-      // instant update
-      this._setCurrentPosition(position);
-      this.requestUpdate();
     }
+    this._setCurrentPosition(position);
+    this.requestUpdate();
   }
 
   // shorthand method to get the current FEN
@@ -846,7 +835,6 @@ export class ChessBoardElement extends LitElement {
   /**
    * Flip the orientation.
    */
-
   flip() {
     this.orientation = this.orientation === 'white' ? 'black' : 'white';
   }
@@ -855,14 +843,14 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate();
   }
 
+  // -------------------------------------------------------------------------
+  // Lifecycle Callbacks
+  // -------------------------------------------------------------------------
+
   firstUpdated() {
     // We need to re-render to read the size of the container
     this.requestUpdate();
   }
-
-  // -------------------------------------------------------------------------
-  // Lifecycle Callbacks
-  // -------------------------------------------------------------------------
 
   connectedCallback() {
     super.connectedCallback();
@@ -942,7 +930,7 @@ export class ChessBoardElement extends LitElement {
     };
 
     // Wait for a paint
-    await this.requestUpdate();
+    this.requestUpdate();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     return new Promise((resolve) => {
@@ -951,7 +939,6 @@ export class ChessBoardElement extends LitElement {
           'transitionend',
           transitionComplete
         );
-        this.requestUpdate();
         resolve();
 
         this.dispatchEvent(
@@ -987,10 +974,11 @@ export class ChessBoardElement extends LitElement {
       piece,
       x: this._dragState.x,
       y: this._dragState.y,
+      source: this._dragState.source,
     };
 
     // Wait for a paint
-    await this.requestUpdate();
+    this.requestUpdate();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     return new Promise((resolve) => {
@@ -999,7 +987,6 @@ export class ChessBoardElement extends LitElement {
           'transitionend',
           transitionComplete
         );
-        this.requestUpdate();
         resolve();
       };
       this._draggedPieceElement.addEventListener(
@@ -1027,7 +1014,7 @@ export class ChessBoardElement extends LitElement {
     };
 
     // Wait for a paint
-    await this.requestUpdate();
+    this.requestUpdate();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     return new Promise((resolve) => {
@@ -1036,8 +1023,6 @@ export class ChessBoardElement extends LitElement {
           'transitionend',
           transitionComplete
         );
-
-        this.requestUpdate();
         resolve();
 
         // Fire the snap-end event
@@ -1336,9 +1321,9 @@ export class ChessBoardElement extends LitElement {
         this._animations.set(animation.square, animation);
       }
     }
-    this.requestUpdate();
 
     // Wait for a paint
+    this.requestUpdate();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
     // Render again with the piece at opacity 1 with a transition
