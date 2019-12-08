@@ -347,8 +347,8 @@ export class ChessBoardElement extends LitElement {
         Object.assign(styles, {
           transitionProperty: 'top, left',
           transitionDuration: `${speedToMS(this.snapbackSpeed)}ms`,
-          top: `${rect.top + document.body.scrollTop}px`,
-          left: `${rect.left + document.body.scrollLeft}px`,
+          top: `${rect.top}px`,
+          left: `${rect.left}px`,
         });
       } else if (dragState.state === 'trash') {
         const {x, y} = dragState;
@@ -365,8 +365,8 @@ export class ChessBoardElement extends LitElement {
         Object.assign(styles, {
           transitionProperty: 'top, left',
           transitionDuration: `${speedToMS(this.snapSpeed)}ms`,
-          top: `${rect.top + document.body.scrollTop}px`,
-          left: `${rect.left + document.body.scrollLeft}px`,
+          top: `${rect.top}px`,
+          left: `${rect.left}px`,
         });
       }
     }
@@ -675,7 +675,7 @@ export class ChessBoardElement extends LitElement {
 
   private _mousemoveWindow = (e: MouseEvent) => {
     if (this._dragState?.state === 'dragging') {
-      this._updateDraggedPiece(e.pageX, e.pageY);
+      this._updateDraggedPiece(e.clientX, e.clientY, e.pageX, e.pageY);
     }
   };
 
@@ -686,7 +686,7 @@ export class ChessBoardElement extends LitElement {
     }
 
     // get the location
-    const location = this._isXYOnSquare(e.pageX, e.pageY);
+    const location = this._isXYOnSquare(e.clientX, e.clientY);
 
     this._stopDraggedPiece(location);
   };
@@ -740,10 +740,12 @@ export class ChessBoardElement extends LitElement {
 
     // prevent screen from scrolling
     e.preventDefault();
-
+    const touch = (e as any).originalEvent.changedTouches[0];
     this._updateDraggedPiece(
-      (e as any).originalEvent.changedTouches[0].pageX,
-      (e as any).originalEvent.changedTouches[0].pageY
+      touch.clientX,
+      touch.clientY,
+      touch.pageX,
+      touch.pageY
     );
   }
 
@@ -905,10 +907,11 @@ export class ChessBoardElement extends LitElement {
   private _isXYOnSquare(x: number, y: number): Location | 'offboard' {
     // TODO: test that this works with the polyfill
     const elements = this.shadowRoot!.elementsFromPoint(x, y);
-    const square = elements.find((e) => e.classList.contains('square'));
-    return square === undefined
+    const squareEl = elements.find((e) => e.classList.contains('square'));
+    const square = squareEl === undefined
       ? 'offboard'
-      : (square.getAttribute('data-square') as Location);
+      : (squareEl.getAttribute('data-square') as Location);
+    return square;
   }
 
   private _highlightSquare(square: Location, value = true) {
@@ -1085,16 +1088,16 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate();
   }
 
-  private _updateDraggedPiece(x: number, y: number) {
+  private _updateDraggedPiece(clientX: number, clientY: number, pageX: number, pageY: number) {
     assertIsDragging(this._dragState);
 
     // put the dragged piece over the mouse cursor
-    this._dragState.x = x;
-    this._dragState.y = y;
+    this._dragState.x = pageX;
+    this._dragState.y = pageY;
 
     this.requestUpdate();
 
-    const location = this._isXYOnSquare(x, y);
+    const location = this._isXYOnSquare(clientX, clientY);
 
     // do nothing more if the location has not changed
     if (location === this._dragState.location) {
