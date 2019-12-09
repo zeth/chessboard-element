@@ -1,4 +1,9 @@
-/*! chessboard.js v@VERSION | (c) 2019 Chris Oakman | MIT License chessboardjs.com/license */
+/**
+ * Copyright (c) 2019, Chris Oakman
+ * Copyright (c) 2019, Justin Fagnani
+ * Released under the MIT license
+ * https://github.com/justinfagnani/chessboardjs/blob/master/LICENSE.md
+ */
 
 import {css} from 'lit-element';
 

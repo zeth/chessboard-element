@@ -1,3 +1,10 @@
+/**
+ * Copyright (c) 2019, Chris Oakman
+ * Copyright (c) 2019, Justin Fagnani
+ * Released under the MIT license
+ * https://github.com/justinfagnani/chessboardjs/blob/master/LICENSE.md
+ */
+
 import {isString, deepCopy} from './utils.js';
 
 export type Piece = string;

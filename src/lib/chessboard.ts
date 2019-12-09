@@ -1,9 +1,9 @@
-// chessboard.js v@VERSION
-// https://github.com/oakmac/chessboardjs/
-//
-// Copyright (c) 2019, Chris Oakman
-// Released under the MIT license
-// https://github.com/oakmac/chessboardjs/blob/master/LICENSE.md
+/**
+ * Copyright (c) 2019, Chris Oakman
+ * Copyright (c) 2019, Justin Fagnani
+ * Released under the MIT license
+ * https://github.com/justinfagnani/chessboardjs/blob/master/LICENSE.md
+ */
 
 import {customElement, property, LitElement, html, query} from 'lit-element';
 import {classMap} from 'lit-html/directives/class-map.js';
