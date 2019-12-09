@@ -70,10 +70,8 @@ const examplesGroups = [
 const homepageExample1 = ''
 
 const homepageExample2 = `
-const board2 = document.querySelector('#board2');
-
-$('#startBtn').on('click', () => board2.start())
-$('#clearBtn').on('click', () => board2.clear())`.trim()
+startBtn.addEventListener('click', () => board3.start());
+clearBtn.addEventListener('click', () => board3.clear());`.trim()
 
 function writeSrcFiles () {
   fs.copyFileSync('lib/chessboard.js', 'website/js/chessboard.js');
