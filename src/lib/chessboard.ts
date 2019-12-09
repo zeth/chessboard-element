@@ -469,7 +469,7 @@ export class ChessBoardElement extends LitElement {
         id="${ifDefined(id)}"
         src="${ifDefined(src)}"
         part="piece ${part ?? ''}"
-        data-piece="${piece}"
+        piece="${piece}"
         style="${styleMap(style as StyleInfo)}"
       />
     `;
@@ -598,7 +598,7 @@ export class ChessBoardElement extends LitElement {
     }
     const sparePieceContainerEl = e.currentTarget as HTMLElement;
     const pieceEl = sparePieceContainerEl.querySelector('[part~=piece]');
-    const piece = pieceEl!.getAttribute('data-piece')!;
+    const piece = pieceEl!.getAttribute('piece')!;
     this._beginDraggingPiece('spare', piece, e.pageX, e.pageY);
   }
 
@@ -720,8 +720,8 @@ export class ChessBoardElement extends LitElement {
     // do nothing if sparePieces is not enabled
     if (!this.sparePieces) return;
 
-    const pieceEl = (e.target as HTMLElement).closest('[data-piece]');
-    const piece = pieceEl!.getAttribute('data-piece')!;
+    const pieceEl = (e.target as HTMLElement).closest('[piece]');
+    const piece = pieceEl!.getAttribute('piece')!;
 
     e = (e as any).originalEvent;
     this._beginDraggingPiece(
