@@ -1,7 +1,7 @@
 {
   "author": "Justin Fagnani <justin@fagnani.com> (http://justinfagnani.com/)",
-  "name": "@justinfagnani/chessboardjs",
-  "description": "JavaScript chessboard widget",
+  "name": "chessboard-element",
+  "description": "A chessboard web component",
   "homepage": "https://chessboardjs.com",
   "license": "MIT",
   "version": "0.1.1",

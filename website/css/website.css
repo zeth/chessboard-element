@@ -264,10 +264,11 @@ footer .right-05ad3 a {
 }
 
 .hero-inner-556fe {
-  height: 535px;
+  height: 400px;
   margin: 0px auto;
-  padding-top: 118px;
+  padding-top: 100px;
   text-align: center;
+  color: white;
 }
 
 .hero-inner-556fe img {
@@ -278,7 +279,6 @@ footer .right-05ad3 a {
 }
 
 .hero-inner-556fe h1 {
-  color: #fff;
   font-size: 44px;
   font-weight: 400;
   margin: 28px 0 0 0;
@@ -286,7 +286,6 @@ footer .right-05ad3 a {
 }
 
 .hero-inner-556fe h3 {
-  color: #fff;
   font-size: 16px;
   font-weight: 300;
   margin: 0;
