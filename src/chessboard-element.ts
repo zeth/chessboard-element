@@ -152,6 +152,8 @@ const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
 const wikipediaPiece = (p: string) =>
   new URL(`./chesspieces/wikipedia/${p}.png`, import.meta.url).href;
 
+console.debug('import.meta.url', import.meta.url);
+
 @customElement('chess-board')
 export class ChessBoardElement extends LitElement {
   static styles = styles;
