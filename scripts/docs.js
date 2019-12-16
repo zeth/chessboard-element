@@ -15,8 +15,8 @@ const encoding = {encoding: 'utf8'};
 
 // toggle development version
 const useDevFile = false;
-const jsCDNLink = '<script type="module" src="https://unpkg.com/chessboard-element"></script>';
-const utilsCDNImport = 'https://unpkg.com/chessboard-element/lib/chess-utils.js';
+const jsCDNLink = '<script type="module" src="https://unpkg.com/chessboard-element?module"></script>';
+const utilsCDNImport = 'https://unpkg.com/chessboard-element/lib/chess-utils.js?module';
 
 let chessboardJsScript = jsCDNLink;
 let chessUtilsJsImport = utilsCDNImport;
