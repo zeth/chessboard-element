@@ -2,7 +2,7 @@
  * Copyright (c) 2019, Chris Oakman
  * Copyright (c) 2019, Justin Fagnani
  * Released under the MIT license
- * https://github.com/justinfagnani/chessboardjs/blob/master/LICENSE.md
+ * https://github.com/justinfagnani/chessboard-element/blob/master/LICENSE.md
  */
 
 import {css} from 'lit-element';

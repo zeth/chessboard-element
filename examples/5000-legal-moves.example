@@ -5,7 +5,7 @@
 Only Allow Legal Moves
 
 ===== Description
-You can integrate chessboard.js with the <a href="https://github.com/jhlywa/chess.js">chess.js</a> library to only allow legal moves.
+You can integrate chessboard-element with the <a href="https://github.com/jhlywa/chess.js">chess.js</a> library to only allow legal moves.
 
 ===== HTML
 <chess-board

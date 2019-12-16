@@ -503,7 +503,7 @@
   "desc":"Unable to build image source for cfg.pieceTheme.",
   "fix":[
     "This is an internal Chessboard error that you should never see.",
-    "If you see this error please open a <a href='https://github.com/oakmac/chessboardjs/issues'>GitHub issue</a>."
+    "If you see this error please open a <a href='https://github.com/justinfagnani/chessboard-element/issues'>GitHub issue</a>."
   ]
 }
 ]

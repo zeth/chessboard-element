@@ -2,13 +2,16 @@
   "author": "Justin Fagnani <justin@fagnani.com> (http://justinfagnani.com/)",
   "name": "chessboard-element",
   "description": "A chessboard web component",
-  "homepage": "https://chessboardjs.com",
+  "homepage": "https://github.com/justinfagnani/chessboard-element",
   "license": "MIT",
   "version": "0.1.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/justinfagnani/chessboard-element.git"
   },
+  "main": "chessboard-element.js",
+  "module": "chessboard-element.js",
+  "type": "module",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.10.0",
     "@typescript-eslint/parser": "^2.10.0",
@@ -25,7 +28,7 @@
     "uglify-js": "3.6.0"
   },
   "scripts": {
-    "start": "es-dev-server --node-resolve",
+    "serve": "es-dev-server --node-resolve",
     "build": "tsc",
     "format": "prettier src/lib/* --write",
     "lint": "eslint src/lib/*.ts",

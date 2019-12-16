@@ -5,9 +5,10 @@ dist/
 node_modules/
 /lib/
 
+chessboard-element.d.ts
+chessboard-element.d.ts.map
+chessboard-element.js
+chessboard-element.js.map
+
 website/*.html
-website/js/chessboard-styles.js
-website/js/chessboard.js
-website/js/chess-utils.js
-website/js/utils.js
 website/examples/

@@ -2,6 +2,9 @@
 // This file builds the contents of the website/ folder.
 // -----------------------------------------------------------------------------
 
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+
 // libraries
 const fs = require('fs-plus')
 const kidif = require('kidif')
@@ -12,12 +15,11 @@ const encoding = {encoding: 'utf8'}
 
 // toggle development version
 const useDevFile = true;
-const jsCDNLink = '<script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js" integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD" crossorigin="anonymous"></script>'
-// const cssCDNLink = 'https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css'
+const jsCDNLink = '<script type="module" src="https://unpkg.com/chessboard-element"></script>'
 
 let chessboardJsScript = jsCDNLink
 if (useDevFile) {
-  chessboardJsScript = '<script type="module" src="../lib/chessboard.js"></script>';
+  chessboardJsScript = '<script type="module" src="../chessboard-element.js"></script>';
 }
 
 // grab some mustache templates
@@ -30,9 +32,6 @@ const licensePageTemplate = fs.readFileSync('templates/license.mustache', encodi
 const headTemplate = fs.readFileSync('templates/_head.mustache', encoding)
 const headerTemplate = fs.readFileSync('templates/_header.mustache', encoding)
 const footerTemplate = fs.readFileSync('templates/_footer.mustache', encoding)
-
-const latestChessboardJS = fs.readFileSync('lib/chessboard.js', encoding)
-const latestChessboardCSS = fs.readFileSync('lib/chessboard-styles.js', encoding)
 
 // grab the examples
 const examplesArr = kidif('examples/*.example')
@@ -67,18 +66,9 @@ const examplesGroups = [
   }
 ]
 
-const homepageExample1 = ''
-
 const homepageExample2 = `
 startBtn.addEventListener('click', () => board3.start());
 clearBtn.addEventListener('click', () => board3.clear());`.trim()
-
-function writeSrcFiles () {
-  fs.copyFileSync('lib/chessboard.js', 'website/js/chessboard.js');
-  fs.copyFileSync('lib/chessboard-styles.js', 'website/js/chessboard-styles.js');
-  fs.copyFileSync('lib/chess-utils.js', 'website/js/chess-utils.js');
-  fs.copyFileSync('lib/utils.js', 'website/js/utils.js');
-}
 
 function writeHomepage () {
   const headHTML = mustache.render(headTemplate, {pageTitle: 'Homepage'})
@@ -179,7 +169,6 @@ function writeLicensePage () {
 }
 
 function writeWebsite () {
-  writeSrcFiles()
   writeHomepage()
   writeExamplesPage()
   writeSingleExamplesPages()

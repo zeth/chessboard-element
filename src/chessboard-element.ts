@@ -2,7 +2,7 @@
  * Copyright (c) 2019, Chris Oakman
  * Copyright (c) 2019, Justin Fagnani
  * Released under the MIT license
- * https://github.com/justinfagnani/chessboardjs/blob/master/LICENSE.md
+ * https://github.com/justinfagnani/chessboard-element/blob/master/LICENSE.md
  */
 
 import {customElement, property, LitElement, html, query} from 'lit-element';
@@ -10,8 +10,8 @@ import {styleMap, StyleInfo} from 'lit-html/directives/style-map.js';
 import {ifDefined} from 'lit-html/directives/if-defined.js';
 import {nothing} from 'lit-html';
 
-import {deepCopy, interpolateTemplate, isString, isFunction} from './utils.js';
-import {styles} from './chessboard-styles.js';
+import {deepCopy, interpolateTemplate, isString, isFunction} from './lib/utils.js';
+import {styles} from './lib/chessboard-styles.js';
 import {
   objToFen,
   findClosestPiece,
@@ -27,7 +27,7 @@ import {
   getSquareColor,
   blackPieces,
   whitePieces,
-} from './chess-utils.js';
+} from './lib/chess-utils.js';
 
 // ---------------------------------------------------------------------------
 // Constants
