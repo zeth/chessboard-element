@@ -6,18 +6,11 @@
  */
 
 import {customElement, property, LitElement, html, query} from 'lit-element';
-import {classMap} from 'lit-html/directives/class-map.js';
 import {styleMap, StyleInfo} from 'lit-html/directives/style-map.js';
 import {ifDefined} from 'lit-html/directives/if-defined.js';
 import {nothing} from 'lit-html';
 
-import {
-  deepCopy,
-  interpolateTemplate,
-  isString,
-  isFunction,
-  isInteger,
-} from './utils.js';
+import {deepCopy, interpolateTemplate, isString, isFunction} from './utils.js';
 import {styles} from './chessboard-styles.js';
 import {
   objToFen,
@@ -132,12 +125,6 @@ declare global {
 // ---------------------------------------------------------------------------
 // Predicates
 // ---------------------------------------------------------------------------
-
-function validAnimationSpeed(speed: unknown): speed is AnimationSpeed {
-  if (speed === 'fast' || speed === 'slow') return true;
-  if (!isInteger(speed)) return false;
-  return speed >= 0;
-}
 
 function assertIsDragging(
   dragState: DragState | undefined
@@ -449,7 +436,7 @@ export class ChessBoardElement extends LitElement {
     styles: Partial<CSSStyleDeclaration>,
     isDragSource?: boolean,
     id?: string,
-    part?: string,
+    part?: string
   ) {
     if (isDragSource) {
       return nothing;
@@ -915,9 +902,10 @@ export class ChessBoardElement extends LitElement {
     // TODO: test that this works with the polyfill
     const elements = this.shadowRoot!.elementsFromPoint(x, y);
     const squareEl = elements.find((e) => e.classList.contains('square'));
-    const square = squareEl === undefined
-      ? 'offboard'
-      : (squareEl.getAttribute('data-square') as Location);
+    const square =
+      squareEl === undefined
+        ? 'offboard'
+        : (squareEl.getAttribute('data-square') as Location);
     return square;
   }
 
@@ -1095,7 +1083,12 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate();
   }
 
-  private _updateDraggedPiece(clientX: number, clientY: number, pageX: number, pageY: number) {
+  private _updateDraggedPiece(
+    clientX: number,
+    clientY: number,
+    pageX: number,
+    pageY: number
+  ) {
     assertIsDragging(this._dragState);
 
     // put the dragged piece over the mouse cursor
