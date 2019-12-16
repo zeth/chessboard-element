@@ -150,7 +150,7 @@ const speedToMS = (speed: AnimationSpeed) => {
 const squareId = (square: Location) => `square-${square}`;
 const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
 const wikipediaPiece = (p: string) =>
-  new URL(`../chesspieces/wikipedia/${p}.png`, import.meta.url).href;
+  new URL(`./chesspieces/wikipedia/${p}.png`, import.meta.url).href;
 
 @customElement('chess-board')
 export class ChessBoardElement extends LitElement {
