@@ -4,7 +4,7 @@
   "description": "A chessboard web component",
   "homepage": "https://github.com/justinfagnani/chessboard-element",
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "1.0.0-pre.1",
   "repository": {
     "type": "git",
     "url": "git://github.com/justinfagnani/chessboard-element.git"
@@ -32,7 +32,7 @@
     "build": "tsc",
     "format": "prettier src/lib/* --write",
     "lint": "eslint src/lib/*.ts",
-    "website": "node scripts/website.js"
+    "docs": "node scripts/docs.js"
   },
   "dependencies": {
     "lit-element": "^2.2.1"
