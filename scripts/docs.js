@@ -1,5 +1,5 @@
 // -----------------------------------------------------------------------------
-// This file builds the contents of the website/ folder.
+// This file builds the contents of the docs/ folder.
 // -----------------------------------------------------------------------------
 
 import { createRequire } from 'module';
@@ -11,15 +11,18 @@ const kidif = require('kidif')
 const mustache = require('mustache')
 const docs = require('../data/docs.json')
 
-const encoding = {encoding: 'utf8'}
+const encoding = {encoding: 'utf8'};
 
 // toggle development version
-const useDevFile = true;
-const jsCDNLink = '<script type="module" src="https://unpkg.com/chessboard-element"></script>'
+const useDevFile = false;
+const jsCDNLink = '<script type="module" src="https://unpkg.com/chessboard-element"></script>';
+const utilsCDNImport = 'https://unpkg.com/chessboard-element/lib/chess-utils.js';
 
-let chessboardJsScript = jsCDNLink
+let chessboardJsScript = jsCDNLink;
+let chessUtilsJsImport = utilsCDNImport;
 if (useDevFile) {
   chessboardJsScript = '<script type="module" src="../chessboard-element.js"></script>';
+  chessUtilsJsImport = '../../lib/chess-utils.js';
 }
 
 // grab some mustache templates
@@ -79,7 +82,7 @@ function writeHomepage () {
     footer: footerTemplate,
     head: headHTML
   })
-  fs.writeFileSync('website/index.html', html, encoding)
+  fs.writeFileSync('docs/index.html', html, encoding)
 }
 
 function writeExamplesPage () {
@@ -94,8 +97,8 @@ function writeExamplesPage () {
     header: headerHTML,
     nav: buildExamplesNavHTML()
   })
-  fs.writeFileSync('website/examples.html', html, encoding)
-  fs.writeFileSync('website/js/generated-examples.js', buildExamplesJS(), encoding);
+  fs.writeFileSync('docs/examples.html', html, encoding)
+  fs.writeFileSync('docs/js/generated-examples.js', buildExamplesJS(), encoding);
 }
 
 const configTableRowsHTML = docs.config.reduce(function (html, itm) {
@@ -128,7 +131,7 @@ function writeSingleExamplePage (example) {
   }
   example.chessboardJsScript = chessboardJsScript
   const html = mustache.render(singleExampleTemplate, example)
-  fs.writeFileSync('website/examples/' + example.id + '.html', html, encoding)
+  fs.writeFileSync('docs/examples/' + example.id + '.html', html, encoding)
 }
 
 function writeSingleExamplesPages () {
@@ -148,7 +151,7 @@ function writeDocsPage () {
     methodTableRows: methodTableRowsHTML,
     eventTableRows: eventTableRowsHTML,
   })
-  fs.writeFileSync('website/docs.html', html, encoding)
+  fs.writeFileSync('docs/docs.html', html, encoding)
 }
 
 function writeDownloadPage () {
@@ -160,12 +163,12 @@ function writeDownloadPage () {
     head: headHTML,
     header: headerHTML
   })
-  fs.writeFileSync('website/download.html', html, encoding)
+  fs.writeFileSync('docs/download.html', html, encoding)
 }
 
 function writeLicensePage () {
   const html = mustache.render(licensePageTemplate)
-  fs.writeFileSync('website/license.html', html, encoding)
+  fs.writeFileSync('docs/license.html', html, encoding)
 }
 
 function writeWebsite () {
@@ -219,7 +222,7 @@ function buildExamplesNavHTML () {
 
 function buildExamplesJS () {
   let txt = `
-import * as chessUtils from '../../lib/chess-utils.js';
+import * as chessUtils from '${chessUtilsJsImport}';
 export const EXAMPLES = {};
 export default EXAMPLES;
   `;

@@ -72,8 +72,8 @@ _TBD_
 # Build the TypeScript files
 npm run build
 
-# Build the website
-npm run website
+# Build the docs site
+npm run docs
 
 # Start the dev server
 npm run serve

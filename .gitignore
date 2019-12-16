@@ -1,14 +1,10 @@
 # git diff files
 *.diff
 
-dist/
-node_modules/
+/node_modules/
 /lib/
 
 chessboard-element.d.ts
 chessboard-element.d.ts.map
 chessboard-element.js
 chessboard-element.js.map
-
-website/*.html
-website/examples/
