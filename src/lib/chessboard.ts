@@ -123,6 +123,12 @@ type DragState =
   | TrashDragState
   | SnapDragState;
 
+declare global {
+  interface ImportMeta {
+    url: string;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Predicates
 // ---------------------------------------------------------------------------
@@ -156,7 +162,8 @@ const speedToMS = (speed: AnimationSpeed) => {
 
 const squareId = (square: Location) => `square-${square}`;
 const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
-const wikipediaPiece = (p: string) => `img/chesspieces/wikipedia/${p}.png`;
+const wikipediaPiece = (p: string) =>
+  new URL(`../chesspieces/wikipedia/${p}.png`, import.meta.url).href;
 
 @customElement('chess-board')
 export class ChessBoardElement extends LitElement {
