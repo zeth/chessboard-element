@@ -10,8 +10,8 @@ import {styleMap, StyleInfo} from 'lit-html/directives/style-map.js';
 import {ifDefined} from 'lit-html/directives/if-defined.js';
 import {nothing} from 'lit-html';
 
-import {deepCopy, interpolateTemplate, isString, isFunction} from './lib/utils.js';
-import {styles} from './lib/chessboard-styles.js';
+import {deepCopy, interpolateTemplate, isString, isFunction} from './utils.js';
+import {styles} from './chessboard-styles.js';
 import {
   objToFen,
   findClosestPiece,
@@ -27,7 +27,7 @@ import {
   getSquareColor,
   blackPieces,
   whitePieces,
-} from './lib/chess-utils.js';
+} from './chess-utils.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -150,9 +150,7 @@ const speedToMS = (speed: AnimationSpeed) => {
 const squareId = (square: Location) => `square-${square}`;
 const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
 const wikipediaPiece = (p: string) =>
-  new URL(`./chesspieces/wikipedia/${p}.png`, import.meta.url).href;
-
-console.debug('import.meta.url', import.meta.url);
+  new URL(`../chesspieces/wikipedia/${p}.png`, import.meta.url).href;
 
 @customElement('chess-board')
 export class ChessBoardElement extends LitElement {

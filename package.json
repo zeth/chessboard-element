@@ -9,8 +9,8 @@
     "type": "git",
     "url": "git://github.com/justinfagnani/chessboard-element.git"
   },
-  "main": "chessboard-element.js",
-  "module": "chessboard-element.js",
+  "main": "index.js",
+  "module": "index.js",
   "type": "module",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.10.0",

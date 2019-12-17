@@ -21,7 +21,7 @@ const utilsCDNImport = 'https://unpkg.com/chessboard-element/lib/chess-utils.js?
 let chessboardJsScript = jsCDNLink;
 let chessUtilsJsImport = utilsCDNImport;
 if (useDevFile) {
-  chessboardJsScript = '<script type="module" src="../chessboard-element.js"></script>';
+  chessboardJsScript = '<script type="module" src="../index.js"></script>';
   chessUtilsJsImport = '../../lib/chess-utils.js';
 }
 
