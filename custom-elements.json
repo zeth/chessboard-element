@@ -1,0 +1,177 @@
+{
+  "version": "experimental",
+  "tags": [
+    {
+      "name": "chess-board",
+      "attributes": [
+        {
+          "name": "position",
+          "description": "The current position of the board, as a `PositionObject`. This property may\nbe set externally, but only to valid `PositionObject`s. The value is copied\nbefore being applied to the board. Changes to the position object are not\nreflected in th rendering.\n\nTo set the position using FEN, or a keyword like `'start'`, or to use\nanimations, use the `setPosition` method.",
+          "type": "PositionObject"
+        },
+        {
+          "name": "hide-notation",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "orientation",
+          "type": "SquareColor",
+          "default": "\"white\""
+        },
+        {
+          "name": "draggable-pieces",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "drop-off-board",
+          "type": "OffBoardAction",
+          "default": "\"snapback\""
+        },
+        {
+          "name": "piece-theme",
+          "type": "string | ((piece: string) => string)",
+          "default": "\"wikipediaPiece\""
+        },
+        {
+          "name": "move-speed",
+          "type": "AnimationSpeed",
+          "default": "200"
+        },
+        {
+          "name": "snapback-speed",
+          "type": "AnimationSpeed",
+          "default": "60"
+        },
+        {
+          "name": "snap-speed",
+          "type": "AnimationSpeed",
+          "default": "30"
+        },
+        {
+          "name": "trash-speed",
+          "type": "AnimationSpeed",
+          "default": "100"
+        },
+        {
+          "name": "appear-speed",
+          "type": "AnimationSpeed",
+          "default": "200"
+        },
+        {
+          "name": "spare-pieces",
+          "type": "boolean",
+          "default": "false"
+        }
+      ],
+      "properties": [
+        {
+          "name": "position",
+          "attribute": "position",
+          "description": "The current position of the board, as a `PositionObject`. This property may\nbe set externally, but only to valid `PositionObject`s. The value is copied\nbefore being applied to the board. Changes to the position object are not\nreflected in th rendering.\n\nTo set the position using FEN, or a keyword like `'start'`, or to use\nanimations, use the `setPosition` method.",
+          "type": "PositionObject"
+        },
+        {
+          "name": "hideNotation",
+          "attribute": "hide-notation",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "showNotation",
+          "type": "boolean"
+        },
+        {
+          "name": "orientation",
+          "attribute": "orientation",
+          "type": "SquareColor",
+          "default": "\"white\""
+        },
+        {
+          "name": "draggablePieces",
+          "attribute": "draggable-pieces",
+          "type": "boolean",
+          "default": "false"
+        },
+        {
+          "name": "dropOffBoard",
+          "attribute": "drop-off-board",
+          "type": "OffBoardAction",
+          "default": "\"snapback\""
+        },
+        {
+          "name": "pieceTheme",
+          "attribute": "piece-theme",
+          "type": "string | ((piece: string) => string)",
+          "default": "\"wikipediaPiece\""
+        },
+        {
+          "name": "moveSpeed",
+          "attribute": "move-speed",
+          "type": "AnimationSpeed",
+          "default": "200"
+        },
+        {
+          "name": "snapbackSpeed",
+          "attribute": "snapback-speed",
+          "type": "AnimationSpeed",
+          "default": "60"
+        },
+        {
+          "name": "snapSpeed",
+          "attribute": "snap-speed",
+          "type": "AnimationSpeed",
+          "default": "30"
+        },
+        {
+          "name": "trashSpeed",
+          "attribute": "trash-speed",
+          "type": "AnimationSpeed",
+          "default": "100"
+        },
+        {
+          "name": "appearSpeed",
+          "attribute": "appear-speed",
+          "type": "AnimationSpeed",
+          "default": "200"
+        },
+        {
+          "name": "sparePieces",
+          "attribute": "spare-pieces",
+          "type": "boolean",
+          "default": "false"
+        }
+      ],
+      "events": [
+        {
+          "name": "mouseover-square"
+        },
+        {
+          "name": "mouseout-square"
+        },
+        {
+          "name": "change"
+        },
+        {
+          "name": "snapback-end"
+        },
+        {
+          "name": "snap-end"
+        },
+        {
+          "name": "drag-start"
+        },
+        {
+          "name": "drag-move"
+        },
+        {
+          "name": "drop"
+        },
+        {
+          "name": "move-end"
+        }
+      ]
+    }
+  ]
+}
