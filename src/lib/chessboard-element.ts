@@ -701,7 +701,6 @@ export class ChessBoardElement extends LitElement {
       return;
     }
 
-    e = (e as any).originalEvent;
     this._beginDraggingPiece(
       square,
       this._currentPosition[square]!,
@@ -717,7 +716,6 @@ export class ChessBoardElement extends LitElement {
     const pieceEl = (e.target as HTMLElement).closest('[piece]');
     const piece = pieceEl!.getAttribute('piece')!;
 
-    e = (e as any).originalEvent;
     this._beginDraggingPiece(
       'spare',
       piece,
@@ -726,7 +724,7 @@ export class ChessBoardElement extends LitElement {
     );
   }
 
-  private _touchmoveWindow(e: TouchEvent) {
+  private _touchmoveWindow = (e: TouchEvent) => {
     // do nothing if we are not dragging a piece
     if (!(this._dragState?.state === 'dragging')) {
       return;
@@ -734,16 +732,16 @@ export class ChessBoardElement extends LitElement {
 
     // prevent screen from scrolling
     e.preventDefault();
-    const touch = (e as any).originalEvent.changedTouches[0];
+    const touch = e.changedTouches[0];
     this._updateDraggedPiece(
       touch.clientX,
       touch.clientY,
       touch.pageX,
       touch.pageY
     );
-  }
+  };
 
-  private _touchendWindow(e: TouchEvent) {
+  private _touchendWindow = (e: TouchEvent) => {
     // do nothing if we are not dragging a piece
     if (!(this._dragState?.state === 'dragging')) {
       return;
@@ -751,12 +749,12 @@ export class ChessBoardElement extends LitElement {
 
     // get the location
     const location = this._isXYOnSquare(
-      (e as any).originalEvent.changedTouches[0].pageX,
-      (e as any).originalEvent.changedTouches[0].pageY
+      e.changedTouches[0].clientX,
+      e.changedTouches[0].clientY
     );
 
     this._stopDraggedPiece(location);
-  }
+  };
 
   // -------------------------------------------------------------------------
   // Public Methods
@@ -858,8 +856,10 @@ export class ChessBoardElement extends LitElement {
     super.connectedCallback();
     window.addEventListener('mousemove', this._mousemoveWindow);
     window.addEventListener('mouseup', this._mouseupWindow);
-    window.addEventListener('touchmove', this._touchmoveWindow);
-    window.addEventListener('touchend', this._touchendWindow);
+    window.addEventListener('touchmove', this._touchmoveWindow, {
+      passive: false,
+    });
+    window.addEventListener('touchend', this._touchendWindow, {passive: false});
   }
 
   disconnectedCallback() {
