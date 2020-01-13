@@ -438,7 +438,8 @@ export class ChessBoardElement extends LitElement {
     id?: string,
     part?: string
   ) {
-    if (isDragSource) {
+    
+    if (piece === undefined) {
       return nothing;
     }
 
@@ -449,10 +450,7 @@ export class ChessBoardElement extends LitElement {
       ...styles,
     };
 
-    if (piece === undefined) {
-      return nothing;
-    }
-    if (piece === '') {
+    if (isDragSource || piece === '') {
       style.display = 'none';
     }
 
