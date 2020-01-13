@@ -1,5 +1,5 @@
 
-import * as chessUtils from 'https://unpkg.com/chessboard-element/lib/chess-utils.js?module';
+import * as chessUtils from './chessboard-element.bundled.js';
 export const EXAMPLES = {};
 export default EXAMPLES;
   EXAMPLES["1000"] = {

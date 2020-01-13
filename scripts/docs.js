@@ -15,11 +15,11 @@ const encoding = {encoding: 'utf8'};
 
 // toggle development version
 const useDevFile = false;
-const jsCDNLink = '<script type="module" src="https://unpkg.com/chessboard-element?module"></script>';
-const utilsCDNImport = 'https://unpkg.com/chessboard-element/lib/chess-utils.js?module';
+const jsBundledLink = '<script type="module" src="js/chessboard-element.bundled.js"></script>';
+const utilsBundledImport = './chessboard-element.bundled.js';
 
-let chessboardJsScript = jsCDNLink;
-let chessUtilsJsImport = utilsCDNImport;
+let chessboardJsScript = jsBundledLink;
+let chessUtilsJsImport = utilsBundledImport;
 if (useDevFile) {
   chessboardJsScript = '<script type="module" src="../index.js"></script>';
   chessUtilsJsImport = '../../lib/chess-utils.js';
@@ -72,6 +72,10 @@ const examplesGroups = [
 const homepageExample2 = `
 startBtn.addEventListener('click', () => board3.start());
 clearBtn.addEventListener('click', () => board3.clear());`.trim()
+
+function copyAssets() {
+  fs.copySync('chesspieces', 'docs/chesspieces');
+}
 
 function writeHomepage () {
   const headHTML = mustache.render(headTemplate, {pageTitle: 'Homepage'})
@@ -172,12 +176,13 @@ function writeLicensePage () {
 }
 
 function writeWebsite () {
-  writeHomepage()
-  writeExamplesPage()
-  writeSingleExamplesPages()
-  writeDocsPage()
-  writeDownloadPage()
-  writeLicensePage()
+  copyAssets();
+  writeHomepage();
+  writeExamplesPage();
+  writeSingleExamplesPages();
+  writeDocsPage();
+  writeDownloadPage();
+  writeLicensePage();
 }
 
 writeWebsite()

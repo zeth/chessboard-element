@@ -461,7 +461,7 @@ export class ChessBoardElement extends LitElement {
     return html`
       <img
         id="${ifDefined(id)}"
-        src="${ifDefined(src)}"
+        src="${src ?? ''}"
         part="piece ${part ?? ''}"
         piece="${piece}"
         style="${styleMap(style as StyleInfo)}"
@@ -700,7 +700,7 @@ export class ChessBoardElement extends LitElement {
     if (!this._currentPosition.hasOwnProperty(square)) {
       return;
     }
-
+    e.preventDefault();
     this._beginDraggingPiece(
       square,
       this._currentPosition[square]!,
@@ -716,6 +716,7 @@ export class ChessBoardElement extends LitElement {
     const pieceEl = (e.target as HTMLElement).closest('[piece]');
     const piece = pieceEl!.getAttribute('piece')!;
 
+    e.preventDefault();
     this._beginDraggingPiece(
       'spare',
       piece,
