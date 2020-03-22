@@ -4,8 +4,8 @@
   <!-- <title>chessboard-element Example #{{ id }} - {{ title }}</title> -->
   <body>
     {% include "header.html" %}
-    <script type="module" src="/js/chessboard-element.bundled.js"></script>
-    <script src="/js/chess-0.10.2.min.js"></script>
+    <script type="module" src="{{ '/js/chessboard-element.bundled.js' | url }}"></script>
+    <script src="{{ '/js/chess-0.10.2.min.js' | url }}"></script>
 
     <main>
       <div class="body-width-115f6 flex-c31d5 examples-c30bc">
@@ -14,7 +14,7 @@
           <h4>{{ group }}</h4>
           <ul>
             {% for example in examples %}
-            <li {% if page.url == example.url %}class="active"{% endif %}><a href="{{ example.url }}">{{ example.data.title }}</a></li>
+            <li {% if page.url == example.url %}class="active"{% endif %}><a href="{{ example.url | url }}">{{ example.data.title }}</a></li>
             {% endfor %}
           </ul>
           {% endfor %}

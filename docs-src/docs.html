@@ -35,7 +35,7 @@
             {% for property in util.getProperties(docs) %}
             <tr id="property:{{ property.name }}">
               <td>
-                <p><a href="/docs/#property:{{ property.name }}"><code class="js plain">{{ property.name }}</code></a></p>
+                <p><a href="{{ ('/docs/#property:' + property.name) | url }}"><code class="js plain">{{ property.name }}</code></a></p>
                 <p class=property-type-7ae66>{{ property.type | safe }}</p>
               </td>
               <td class="center">
@@ -64,7 +64,7 @@
             {% for method in util.getMethods(docs) %}
             <tr id="method:{{ util.methodName(method.name) }}">
               <td>
-                <p><a href="/docs/#method:{{ util.methodName(method.name) }}"><code class="js plain">{{ method.name }}</code></a></p>
+                <p><a href="{{ ('/docs/#method:' + util.methodName(method.name)) | url }}"><code class="js plain">{{ method.name }}</code></a></p>
               </td>
               <td>
                 {% if method.parameters %}
@@ -99,7 +99,7 @@
             {% for event in util.getEvents(docs) %}
             <tr id="event:{{ event.name }}">
               <td>
-                <p><a href="/docs/#event:{{ event.name }}"><code class="js plain">{{ event.name }}</code></a></p>
+                <p><a href="{{ ('/docs/#event:' + event.name) | url }}"><code class="js plain">{{ event.name }}</code></a></p>
                 <p class=property-type-7ae66>{{ event.type | safe }}</p>
               </td>
               <td>
@@ -125,7 +125,7 @@
             {% for prop in util.getCssProperties(docs) %}
             <tr id="css-property:{{ prop.name }}">
               <td>
-                <a href="/docs/#css-property:{{ prop.name }}"><code class="js plain">{{ prop.name }}</code></a>
+                <a href="{{ ('/docs/#css-property:' + prop.name) | url }}"><code class="js plain">{{ prop.name }}</code></a>
               </td>
               <td>
                 {{ prop.description | markdown | safe }}
@@ -152,7 +152,7 @@
             {% for part in util.getCssParts(docs) %}
             <tr id="css-part:{{ part.name }}">
               <td>
-                <a href="/docs/#css-part:{{ part.name }}"><code class="js plain">{{ part.name }}</code></a>
+                <a href="{{ ('/docs/#css-part:' + part.name) | url }}"><code class="js plain">{{ part.name }}</code></a>
               </td>
               <td>
                 {{ part.description | markdown | safe }}
@@ -167,16 +167,16 @@
         <h2 id="position_object" class="hover-linkable"><a class="hover-link docs" href="#position_object"></a>Position Object</h2>
         <p>You can use a JavaScript object to represent a board position.</p>
         <p>The object property names must be algebraic squares (ie: e4, b2, c6, etc) and the values must be a valid piece codes (ie: wP, bK, wQ, etc).</p>
-        <p>See an example of using an object to represent a position <a href="examples.html#1003">here</a>.</p>
-        <p>Chessboard.js exposes the <a href="examples.html#4000"><code class="js plain">Chessboard.objToFen</code></a> method to help convert between Position Objects and <a href="docs.html#fen_string">FEN Strings</a>.</p>
+        <p>See an example of using an object to represent a position <a href="{{ '/examples/1003-position-object/' | url }}">here</a>.</p>
+        <p>Chessboard.js exposes the <a href="{{ '/examples/4000-onchange/' | url }}"><code class="js plain">Chessboard.objToFen</code></a> method to help convert between Position Objects and <a href="{{ '/docs/#fen_string' | url }}">FEN Strings</a>.</p>
       </section>
 
       <section>
         <h2 id="fen_string" class="hover-linkable"><a class="hover-link docs" href="#fen_string"></a>FEN String</h2>
         <p>You can use <a href="http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">Forsyth-Edwards Notation (FEN)</a> to represent a board position.</p>
         <p>Note that FEN notation captures more information than chessboard-element requires, like who's move it is and whether or not castling is allowed. This information will be ignored; only the position information is used.</p>
-        <p>See an example of using a FEN String to represent a position <a href="examples.html#1002">here</a> and <a href="examples.html#1004">here</a>.</p>
-        <p>Chessboard.js exposes the <code class="js plain">Chessboard.fenToObj</code> method to help convert a FEN String to a <a href="docs.html#position_object">Position Object</a>.</p>
+        <p>See an example of using a FEN String to represent a position <a href="{{ '/examples/1002-fen/' | url }}">here</a> and <a href="{{ '/examples/2044-position-fen/' | url }}">here</a>.</p>
+        <p>Chessboard.js exposes the <code class="js plain">Chessboard.fenToObj</code> method to help convert a FEN String to a <a href="{{ '/docs/#position_object' | url }}">Position Object</a>.</p>
       </section>
 
       </div>

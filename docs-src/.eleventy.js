@@ -67,6 +67,7 @@ module.exports = function(eleventyConfig) {
       input: '.',
       output: '../docs',
     },
+    pathPrefix: "/chessboard-element/",
     htmlTemplateEngine: 'njk',
     markdownTemplateEngine: 'njk',
   };

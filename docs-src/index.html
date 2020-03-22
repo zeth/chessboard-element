@@ -2,11 +2,11 @@
 <html>
   {% include "head.html" %}
   <body class="homepage">
-    <script type="module" src="/js/chessboard-element.bundled.js"></script>
+    <script type="module" src="{{ '/js/chessboard-element.bundled.js' | url }}"></script>
 
     <div class="hero-wrapper">
       <div class="body-width-115f6 hero-inner-556fe">
-        <img src="/img/bK.png" alt="Black King">
+        <img src="{{ '/img/bK.png' | url }}" alt="Black King">
         <h1>chessboard-element</h1>
         <h2>A &lt;chess-board> element for your web pages</h2>
       </div>
@@ -15,9 +15,9 @@
     <nav id="start" class="homepage-nav-b9ecc">
       <div class="body-width-115f6 navbar-a57cc hover-effect">
         <a href="#start"><span class="piece">&#9823;</span> Getting Started</a>
-        <a href="/examples/"><span class="piece">&#9819;</span> Examples</a>
-        <a href="/docs/"><span class="piece">&#9820;</span> Documentation</a>
-        <a href="/download/"><span class="piece">&#9822;</span> Download</a>
+        <a href="{{ '/examples/' | url }}"><span class="piece">&#9819;</span> Examples</a>
+        <a href="{{ '/docs/' | url }}"><span class="piece">&#9820;</span> Documentation</a>
+        <a href="{{ '/download/' | url }}"><span class="piece">&#9822;</span> Download</a>
       </div>
     </nav>
 

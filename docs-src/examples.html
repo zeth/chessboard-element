@@ -3,8 +3,8 @@
   {% include "head.html" %}
   <body>
     {% include "header.html" %}
-    <script type="module" src="/js/chessboard-element.bundled.js"></script>
-    <script src="/js/chess-0.10.2.min.js" defer></script>
+    <script type="module" src="{{ '/js/chessboard-element.bundled.js' | url }}"></script>
+    <script src="{{ '/js/chess-0.10.2.min.js' | url }}" defer></script>
 
     <main>
       <div class="body-width-115f6 flex-c31d5 examples-c30bc">
@@ -13,7 +13,7 @@
           <h4 class="groupHeader-1">{{ group }}</h4>
           <ul class="groupContainer-1">
             {% for example in examples %}
-            <li><a href="{{ example.url }}">{{ example.data.title }}</a></li>
+            <li><a href="{{ example.url | url }}">{{ example.data.title }}</a></li>
             {% endfor %}
           </ul>
           {% endfor %}
