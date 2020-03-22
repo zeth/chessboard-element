@@ -155,9 +155,11 @@
           <h4>JavaScript</h4>
           <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> board <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'chess-board'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#move1Btn'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  board<span class="token punctuation">.</span><span class="token function">move</span><span class="token punctuation">(</span><span class="token string">'e2-e4'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#move2Btn'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  board<span class="token punctuation">.</span><span class="token function">move</span><span class="token punctuation">(</span><span class="token string">'d2-d4'</span><span class="token punctuation">,</span> <span class="token string">'g8-f6'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#startPositionBtn'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  board<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-          <script>
-          // Begin Example JS
-          const board = document.querySelector('chess-board');
+          <script type="module">
+            import {objToFen} from '/chessboard-element/js/chessboard-element.bundled.js';
+
+            // Begin Example JS
+            const board = document.querySelector('chess-board');
 
 document.querySelector('#move1Btn').addEventListener('click', () => {
   board.move('e2-e4');
@@ -170,7 +172,7 @@ document.querySelector('#move2Btn').addEventListener('click', () => {
 document.querySelector('#startPositionBtn').addEventListener('click', () => {
   board.start();
 });
-          // End Example JS
+            // End Example JS
           </script>
 
           

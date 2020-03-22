@@ -5,7 +5,7 @@ board.addEventListener('snapback-end', (e) => {
 
   console.log('Piece: ' + piece)
   console.log('Square: ' + square)
-  console.log('Position: ' + chessUtils.objToFen(position))
+  console.log('Position: ' + objToFen(position))
   console.log('Orientation: ' + orientation)
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~')
 });

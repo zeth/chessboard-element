@@ -38,10 +38,12 @@
             {% include page.inputPath | jsPath %}
           {% endhighlight %}
 
-          <script>
-          // Begin Example JS
-          {% include page.inputPath | jsPath %}
-          // End Example JS
+          <script type="module">
+            import {objToFen} from '{{ '/js/chessboard-element.bundled.js' | url }}';
+
+            // Begin Example JS
+            {% include page.inputPath | jsPath %}
+            // End Example JS
           </script>
 
           {% endif %}

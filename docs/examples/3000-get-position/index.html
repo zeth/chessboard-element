@@ -157,9 +157,11 @@
           <h4>JavaScript</h4>
           <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> board <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'chess-board'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#showPositionBtn'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Current position as an Object:'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>board<span class="token punctuation">.</span>position<span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span><span class="token string">'Current position as a FEN string:'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>  console<span class="token punctuation">.</span><span class="token function">log</span><span class="token punctuation">(</span>board<span class="token punctuation">.</span><span class="token function">fen</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-          <script>
-          // Begin Example JS
-          const board = document.querySelector('chess-board');
+          <script type="module">
+            import {objToFen} from '/chessboard-element/js/chessboard-element.bundled.js';
+
+            // Begin Example JS
+            const board = document.querySelector('chess-board');
 
 document.querySelector('#showPositionBtn').addEventListener('click', () => {
   console.log('Current position as an Object:');
@@ -168,7 +170,7 @@ document.querySelector('#showPositionBtn').addEventListener('click', () => {
   console.log('Current position as a FEN string:');
   console.log(board.fen());
 });
-          // End Example JS
+            // End Example JS
           </script>
 
           

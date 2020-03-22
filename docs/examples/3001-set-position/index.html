@@ -155,9 +155,11 @@
           <h4>JavaScript</h4>
           <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> board <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'chess-board'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#setRuyLopezBtn'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  board<span class="token punctuation">.</span><span class="token function">setPosition</span><span class="token punctuation">(</span><span class="token string">'r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#setStartBtn'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  board<span class="token punctuation">.</span><span class="token function">start</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'#setRookCheckmateBtn'</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'click'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span><br>  board<span class="token punctuation">.</span><span class="token function">setPosition</span><span class="token punctuation">(</span><span class="token punctuation">{</span><br>    a4<span class="token operator">:</span> <span class="token string">'bK'</span><span class="token punctuation">,</span><br>    c4<span class="token operator">:</span> <span class="token string">'wK'</span><span class="token punctuation">,</span><br>    a7<span class="token operator">:</span> <span class="token string">'wR'</span><br>  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-          <script>
-          // Begin Example JS
-          const board = document.querySelector('chess-board');
+          <script type="module">
+            import {objToFen} from '/chessboard-element/js/chessboard-element.bundled.js';
+
+            // Begin Example JS
+            const board = document.querySelector('chess-board');
 
 document.querySelector('#setRuyLopezBtn').addEventListener('click', () => {
   board.setPosition('r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R');
@@ -174,7 +176,7 @@ document.querySelector('#setRookCheckmateBtn').addEventListener('click', () => {
     a7: 'wR'
   });
 });
-          // End Example JS
+            // End Example JS
           </script>
 
           

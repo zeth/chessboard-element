@@ -3,8 +3,8 @@ const board = document.querySelector('chess-board');
 board.addEventListener('change', (e) => {
   const {value, oldValue} = e.detail;
   console.log('Position changed:');
-  console.log('Old position: ' + chessUtils.objToFen(oldValue));
-  console.log('New position: ' + chessUtils.objToFen(value));
+  console.log('Old position: ' + objToFen(oldValue));
+  console.log('New position: ' + objToFen(value));
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 });
 

@@ -4,8 +4,8 @@ board.addEventListener('move-end', (e) => {
   const {oldPosition, newPosition} = e.detail;
 
   console.log('Move animation complete:');
-  console.log('Old position: ' + chessUtils.objToFen(oldPosition));
-  console.log('New position: ' + chessUtils.objToFen(newPosition));
+  console.log('Old position: ' + objToFen(oldPosition));
+  console.log('New position: ' + objToFen(newPosition));
   console.log('~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~');
 });
 

@@ -151,14 +151,16 @@
           <h4>JavaScript</h4>
           <pre class="language-js"><code class="language-js"><span class="token comment">// NOTE: click "View example in new window." to see the full effect of this example</span><br><span class="token keyword">const</span> board <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'chess-board'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'resize'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> board<span class="token punctuation">.</span><span class="token function">resize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
 
-          <script>
-          // Begin Example JS
-          // NOTE: click "View example in new window." to see the full effect of this example
+          <script type="module">
+            import {objToFen} from '/chessboard-element/js/chessboard-element.bundled.js';
+
+            // Begin Example JS
+            // NOTE: click "View example in new window." to see the full effect of this example
 const board = document.querySelector('chess-board');
 
 window.addEventListener('resize', () => board.resize());
 
-          // End Example JS
+            // End Example JS
           </script>
 
           
