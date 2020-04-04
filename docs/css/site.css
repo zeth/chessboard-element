@@ -517,9 +517,12 @@ main {
   margin: 14px 0;
 }
 
+/* docs and install */
 .page-529b3 {
   background: #fff;
   padding: 20px;
+  max-width: 1024px;
+  margin: auto;
 }
 
 .page-529b3 section {
@@ -533,7 +536,7 @@ main {
 }
 
 /*------------------------------------------------------------------------------
- * Downloads Page
+ * Install Page
  *----------------------------------------------------------------------------*/
 
 .big-version {
@@ -546,10 +549,10 @@ main {
   font-size: 60%;
 }
 
-.download-link {
+/* .download-link {
   margin: 0;
   padding: 0;
-}
+} */
 
 /*------------------------------------------------------------------------------
  * prettyPrint
