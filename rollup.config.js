@@ -20,7 +20,7 @@ import minifyHTML from 'rollup-plugin-minify-html-literals';
 export default {
   input: 'index.js',
   output: {
-    file: 'docs/js/chessboard-element.bundled.js',
+    file: 'docs-src/js/chessboard-element.bundled.js',
     format: 'esm',
   },
   onwarn(warning) {

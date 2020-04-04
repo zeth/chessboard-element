@@ -39,7 +39,7 @@
     "serve": "es-dev-server --node-resolve",
     "build": "tsc",
     "analyze": "wca analyze \"src/**/*.ts\" --outFile custom-elements.json",
-    "api": "wca src/lib/chessboard-element.ts -f json2 --outFile docs/_data/docs.json --inlineTypes",
+    "api": "wca src/lib/chessboard-element.ts -f json2 --outFile docs-src/_data/docs.json --inlineTypes",
     "format": "prettier src/lib/* --write",
     "lint": "eslint src/lib/*.ts",
     "bundle": "rollup -c"

@@ -3,7 +3,6 @@
   "tags": [
     {
       "name": "chess-board",
-      "path": "./src/lib/chessboard-element.ts",
       "description": "A custom element that renders an interactive chess board.",
       "attributes": [
         {
