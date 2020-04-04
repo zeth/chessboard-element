@@ -35,7 +35,8 @@ export const styles = css`
     user-select: none;
   }
 
-  [part~='piece'] {
+  [part~='piece'],
+  .piece-image {
     width: 100%;
     height: 100%;
     z-index: 10;

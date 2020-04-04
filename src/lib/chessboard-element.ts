@@ -6,6 +6,7 @@
  */
 
 import {customElement, property, LitElement, html, query} from 'lit-element';
+import {render, directive, AttributePart, removeNodes} from 'lit-html';
 import {styleMap, StyleInfo} from 'lit-html/directives/style-map.js';
 import {ifDefined} from 'lit-html/directives/if-defined.js';
 import {nothing} from 'lit-html';
@@ -28,6 +29,7 @@ import {
   blackPieces,
   whitePieces,
 } from './chess-utils.js';
+import {renderPiece as renderWikipediaSVGPiece} from './wikipedia-pieces-svg.js'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -149,8 +151,22 @@ const speedToMS = (speed: AnimationSpeed) => {
 
 const squareId = (square: Location) => `square-${square}`;
 const sparePieceId = (piece: Piece) => `spare-piece-${piece}`;
-const wikipediaPiece = (p: string) =>
-  new URL(`../chesspieces/wikipedia/${p}.png`, import.meta.url).href;
+// const wikipediaPiece = (p: Piece) =>
+//   new URL(`../chesspieces/wikipedia/${p}.png`, import.meta.url).href;
+
+export type RenderPieceFunction = (piece: Piece, container: Element) => void;
+
+const renderPieceDirective = directive(
+  (piece: Piece, renderPiece?: RenderPieceFunction) => (
+    part: AttributePart
+  ) => {
+    if (isFunction(renderPiece)) {
+      renderPiece(piece, part.committer.element);
+    } else {
+      removeNodes(part.committer.element, part.committer.element.firstChild);
+    }
+  }
+);
 
 /**
  * A custom element that renders an interactive chess board.
@@ -327,12 +343,41 @@ export class ChessBoardElement extends LitElement {
   dropOffBoard: OffBoardAction = 'snapback';
 
   /**
-   * A template string used to determine the source of piece images. If
-   * `pieceTheme` is a function the first argument is the piece code. The
+   * A template string or function used to determine the source of piece images,
+   * used by the default `renderPiece` function, which renders an `<img>`
+   * element.
+   * 
+   * If `pieceTheme` is a string, the pattern {piece} will be replaced by the
+   * piece code. The result should be an an `<img>` source.
+   * 
+   * If `pieceTheme` is a function the first argument is the piece code. The
    * function should return an `<img>` source.
    */
   @property({attribute: 'piece-theme'})
-  pieceTheme: string | ((piece: string) => string) = wikipediaPiece;
+  pieceTheme?: string | ((piece: string) => string);
+
+  /**
+   * A function that renders DOM for a piece to a container element. This
+   * function can render any elements and text, including SVG.
+   * 
+   * The default value renders an SVG image of the piece, unless the
+   * `pieceTheme` property is set, then it uses `pieceTheme` to get the URL for
+   * an `<img>` element.
+   */
+  @property({attribute: false})
+  renderPiece?: RenderPieceFunction = (piece: string, container: Element) => {
+    let pieceImage: string | undefined = undefined;
+    if (isString(this.pieceTheme)) {
+      pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});
+    } else if (isFunction(this.pieceTheme)) {
+      pieceImage = this.pieceTheme(piece);
+    }
+    if (pieceImage === undefined) {
+      renderWikipediaSVGPiece(piece, container);
+    } else {
+      render(html`<img class="piece-image" src=${pieceImage} />`, container);
+    }
+  };
 
   /**
    * Animation speed for when pieces move between squares or from spare pieces
@@ -604,16 +649,22 @@ export class ChessBoardElement extends LitElement {
       style.display = 'none';
     }
 
-    const src = piece === '' ? undefined : this._getPieceImgSrc(piece);
+    if (piece === '') {
+      return nothing;
+    }
+
+    if (!isFunction(this.renderPiece)) {
+      this._error(8272, 'invalid renderPiece.');
+    }
 
     return html`
-      <img
-        id="${ifDefined(id)}"
-        src="${src ?? ''}"
+      <div
+        id=${ifDefined(id)}
         part="piece ${part ?? ''}"
-        piece="${piece}"
-        style="${styleMap(style as StyleInfo)}"
-      />
+        piece=${piece}
+        style=${styleMap(style as StyleInfo)}
+        ...=${renderPieceDirective(piece, this.renderPiece)}
+      ></div>
     `;
   }
 
@@ -688,20 +739,6 @@ export class ChessBoardElement extends LitElement {
       }
     }
     return {};
-  }
-
-  private _getPieceImgSrc(piece: string) {
-    if (isFunction(this.pieceTheme)) {
-      return this.pieceTheme(piece);
-    }
-
-    if (isString(this.pieceTheme)) {
-      return interpolateTemplate(this.pieceTheme, {piece: piece});
-    }
-
-    // NOTE: this should never happen
-    this._error(8272, 'Unable to build image source for pieceTheme.');
-    return undefined;
   }
 
   // -------------------------------------------------------------------------
