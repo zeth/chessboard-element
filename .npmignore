@@ -1,6 +1,8 @@
-data/
-examples/
-scripts/
-templates/
+docs/
+docs-src/
+src/
+.vscode
 .editorconfig
-changes.diff
+.eslint.json
+rollup.config.js
+tsconfig.json
