@@ -29,7 +29,7 @@ import {
   blackPieces,
   whitePieces,
 } from './chess-utils.js';
-import {renderPiece as renderWikipediaSVGPiece} from './wikipedia-pieces-svg.js'
+import {renderPiece as renderWikipediaSVGPiece} from './wikipedia-pieces-svg.js';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -346,10 +346,10 @@ export class ChessBoardElement extends LitElement {
    * A template string or function used to determine the source of piece images,
    * used by the default `renderPiece` function, which renders an `<img>`
    * element.
-   * 
+   *
    * If `pieceTheme` is a string, the pattern {piece} will be replaced by the
    * piece code. The result should be an an `<img>` source.
-   * 
+   *
    * If `pieceTheme` is a function the first argument is the piece code. The
    * function should return an `<img>` source.
    */
@@ -359,7 +359,7 @@ export class ChessBoardElement extends LitElement {
   /**
    * A function that renders DOM for a piece to a container element. This
    * function can render any elements and text, including SVG.
-   * 
+   *
    * The default value renders an SVG image of the piece, unless the
    * `pieceTheme` property is set, then it uses `pieceTheme` to get the URL for
    * an `<img>` element.
@@ -375,7 +375,12 @@ export class ChessBoardElement extends LitElement {
     if (pieceImage === undefined) {
       renderWikipediaSVGPiece(piece, container);
     } else {
-      render(html`<img class="piece-image" src=${pieceImage} />`, container);
+      render(
+        html`
+          <img class="piece-image" src=${pieceImage} />
+        `,
+        container
+      );
     }
   };
 

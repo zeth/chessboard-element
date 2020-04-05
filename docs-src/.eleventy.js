@@ -16,10 +16,10 @@ module.exports = function(eleventyConfig) {
   // eleventyConfig.addPlugin(pluginTOC, {tags: ['h2']});
   eleventyConfig.addPlugin(syntaxHighlight);
   eleventyConfig.addPassthroughCopy('js/*');
+  eleventyConfig.addPassthroughCopy({'../bundled/*': 'bundled'});
   eleventyConfig.addPassthroughCopy('css/*');
   eleventyConfig.addPassthroughCopy('img/**/*');
   eleventyConfig.addPassthroughCopy('chesspieces/**/*');
-  // eleventyConfig.addPassthroughCopy('api/assets/**/*');
 
   const md = markdownIt({html: true, breaks: true, linkify: true});
                 //  .use(markdownItAnchor, {slugify, permalink: false});

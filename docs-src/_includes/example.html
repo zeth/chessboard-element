@@ -4,7 +4,7 @@
   <!-- <title>chessboard-element Example #{{ id }} - {{ title }}</title> -->
   <body>
     {% include "header.html" %}
-    <script type="module" src="{{ '/js/chessboard-element.bundled.js' | url }}"></script>
+    <script type="module" src="{{ '/bundled/chessboard-element.bundled.js' | url }}"></script>
     <script src="{{ '/js/chess-0.10.2.min.js' | url }}"></script>
 
     <main>
@@ -39,7 +39,7 @@
           {% endhighlight %}
 
           <script type="module">
-            import {objToFen} from '{{ '/js/chessboard-element.bundled.js' | url }}';
+            import {objToFen} from '{{ '/bundled/chessboard-element.bundled.js' | url }}';
 
             // Begin Example JS
             {% include page.inputPath | jsPath %}

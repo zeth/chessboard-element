@@ -3,6 +3,7 @@
   "tags": [
     {
       "name": "chess-board",
+      "path": "./src/lib/chessboard-element.ts",
       "description": "A custom element that renders an interactive chess board.",
       "attributes": [
         {
@@ -127,7 +128,7 @@
           "name": "renderPiece",
           "description": "A function that renders DOM for a piece to a container element. This\nfunction can render any elements and text, including SVG.\n\nThe default value renders an SVG image of the piece, unless the\n`pieceTheme` property is set, then it uses `pieceTheme` to get the URL for\nan `<img>` element.",
           "type": "RenderPieceFunction | undefined",
-          "default": "\"(piece: string, container: Element) => {\\n    let pieceImage: string | undefined = undefined;\\n    if (isString(this.pieceTheme)) {\\n      pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});\\n    } else if (isFunction(this.pieceTheme)) {\\n      pieceImage = this.pieceTheme(piece);\\n    }\\n    if (pieceImage === undefined) {\\n      renderWikipediaSVGPiece(piece, container);\\n    } else {\\n      render(html`<img class=\\\"piece-image\\\" src=${pieceImage} />`, container);\\n    }\\n  }\""
+          "default": "\"(piece: string, container: Element) => {\\n    let pieceImage: string | undefined = undefined;\\n    if (isString(this.pieceTheme)) {\\n      pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});\\n    } else if (isFunction(this.pieceTheme)) {\\n      pieceImage = this.pieceTheme(piece);\\n    }\\n    if (pieceImage === undefined) {\\n      renderWikipediaSVGPiece(piece, container);\\n    } else {\\n      render(\\n        html`\\n          <img class=\\\"piece-image\\\" src=${pieceImage} />\\n        `,\\n        container\\n      );\\n    }\\n  }\""
         },
         {
           "name": "moveSpeed",

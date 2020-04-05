@@ -26,7 +26,7 @@
   </div>
 </header>
 
-    <script type="module" src="/chessboard-element/js/chessboard-element.bundled.js"></script>
+    <script type="module" src="/chessboard-element/bundled/chessboard-element.bundled.js"></script>
     <script src="/chessboard-element/js/chess-0.10.2.min.js"></script>
 
     <main>
@@ -152,7 +152,7 @@
           <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> board <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'chess-board'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br>board<span class="token punctuation">.</span>position <span class="token operator">=</span> <span class="token punctuation">{</span><br>  d6<span class="token operator">:</span> <span class="token string">'bK'</span><span class="token punctuation">,</span><br>  d4<span class="token operator">:</span> <span class="token string">'wP'</span><span class="token punctuation">,</span><br>  e4<span class="token operator">:</span> <span class="token string">'wK'</span><br><span class="token punctuation">}</span></code></pre>
 
           <script type="module">
-            import {objToFen} from '/chessboard-element/js/chessboard-element.bundled.js';
+            import {objToFen} from '/chessboard-element/bundled/chessboard-element.bundled.js';
 
             // Begin Example JS
             const board = document.querySelector('chess-board');

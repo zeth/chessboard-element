@@ -60,10 +60,17 @@
             {
               "kind": "field",
               "name": "pieceTheme",
-              "description": "A template string used to determine the source of piece images. If\n`pieceTheme` is a function the first argument is the piece code. The\nfunction should return an `<img>` source.",
-              "default": "wikipediaPiece",
+              "description": "A template string or function used to determine the source of piece images,\nused by the default `renderPiece` function, which renders an `<img>`\nelement.\n\nIf `pieceTheme` is a string, the pattern {piece} will be replaced by the\npiece code. The result should be an an `<img>` source.\n\nIf `pieceTheme` is a function the first argument is the piece code. The\nfunction should return an `<img>` source.",
               "privacy": "public",
-              "type": "string | ((piece: string) => string)"
+              "type": "string | ((piece: string) => string) | undefined"
+            },
+            {
+              "kind": "field",
+              "name": "renderPiece",
+              "description": "A function that renders DOM for a piece to a container element. This\nfunction can render any elements and text, including SVG.\n\nThe default value renders an SVG image of the piece, unless the\n`pieceTheme` property is set, then it uses `pieceTheme` to get the URL for\nan `<img>` element.",
+              "default": "(piece: string, container: Element) => {\n    let pieceImage: string | undefined = undefined;\n    if (isString(this.pieceTheme)) {\n      pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});\n    } else if (isFunction(this.pieceTheme)) {\n      pieceImage = this.pieceTheme(piece);\n    }\n    if (pieceImage === undefined) {\n      renderWikipediaSVGPiece(piece, container);\n    } else {\n      render(\n        html`\n          <img class=\"piece-image\" src=${pieceImage} />\n        `,\n        container\n      );\n    }\n  }",
+              "privacy": "public",
+              "type": "RenderPieceFunction | undefined"
             },
             {
               "kind": "field",
@@ -125,7 +132,6 @@
                 },
                 {
                   "name": "useAnimation",
-                  "type": "boolean",
                   "description": "If `true`, animate to the new position. If `false`,\nshow the new position instantly."
                 }
               ]
@@ -234,9 +240,14 @@
             {
               "name": "piece-theme",
               "fieldName": "pieceTheme",
-              "description": "A template string used to determine the source of piece images. If\n`pieceTheme` is a function the first argument is the piece code. The\nfunction should return an `<img>` source.",
-              "type": "string | ((piece: string) => string)",
-              "default": "\"wikipediaPiece\""
+              "description": "A template string or function used to determine the source of piece images,\nused by the default `renderPiece` function, which renders an `<img>`\nelement.\n\nIf `pieceTheme` is a string, the pattern {piece} will be replaced by the\npiece code. The result should be an an `<img>` source.\n\nIf `pieceTheme` is a function the first argument is the piece code. The\nfunction should return an `<img>` source.",
+              "type": "string | ((piece: string) => string) | undefined"
+            },
+            {
+              "fieldName": "renderPiece",
+              "description": "A function that renders DOM for a piece to a container element. This\nfunction can render any elements and text, including SVG.\n\nThe default value renders an SVG image of the piece, unless the\n`pieceTheme` property is set, then it uses `pieceTheme` to get the URL for\nan `<img>` element.",
+              "type": "RenderPieceFunction | undefined",
+              "default": "\"(piece: string, container: Element) => {\\n    let pieceImage: string | undefined = undefined;\\n    if (isString(this.pieceTheme)) {\\n      pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});\\n    } else if (isFunction(this.pieceTheme)) {\\n      pieceImage = this.pieceTheme(piece);\\n    }\\n    if (pieceImage === undefined) {\\n      renderWikipediaSVGPiece(piece, container);\\n    } else {\\n      render(\\n        html`\\n          <img class=\\\"piece-image\\\" src=${pieceImage} />\\n        `,\\n        container\\n      );\\n    }\\n  }\""
             },
             {
               "name": "move-speed",

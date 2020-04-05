@@ -155,16 +155,53 @@ board.</p>
             <tr id="property:pieceTheme">
               <td>
                 <p><a href="/chessboard-element/docs/#property:pieceTheme"><code class="js plain">pieceTheme</code></a></p>
-                <p class=property-type-7ae66>string | ((piece: string) => string)</p>
+                <p class=property-type-7ae66>string | ((piece: string) => string) | undefined</p>
               </td>
               <td class="center">
-                <p>wikipediaPiece</p>
+                
+              </td>
+              <td>
+                <p>A template string or function used to determine the source of piece images,<br>
+used by the default <code>renderPiece</code> function, which renders an <code>&lt;img&gt;</code><br>
+element.</p>
+<p>If <code>pieceTheme</code> is a string, the pattern {piece} will be replaced by the<br>
+piece code. The result should be an an <code>&lt;img&gt;</code> source.</p>
+<p>If <code>pieceTheme</code> is a function the first argument is the piece code. The<br>
+function should return an <code>&lt;img&gt;</code> source.</p>
+
+              </td>
+            </tr>
+            
+            <tr id="property:renderPiece">
+              <td>
+                <p><a href="/chessboard-element/docs/#property:renderPiece"><code class="js plain">renderPiece</code></a></p>
+                <p class=property-type-7ae66>RenderPieceFunction | undefined</p>
+              </td>
+              <td class="center">
+                <p>(piece: string, container: Element) =&gt; {<br>
+let pieceImage: string | undefined = undefined;<br>
+if (isString(this.pieceTheme)) {<br>
+pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});<br>
+} else if (isFunction(this.pieceTheme)) {<br>
+pieceImage = this.pieceTheme(piece);<br>
+}<br>
+if (pieceImage === undefined) {<br>
+renderWikipediaSVGPiece(piece, container);<br>
+} else {<br>
+render(<br>
+html<code>&lt;img class=&quot;piece-image&quot; src=${pieceImage} /&gt;</code>,<br>
+container<br>
+);<br>
+}<br>
+}</p>
 
               </td>
               <td>
-                <p>A template string used to determine the source of piece images. If<br>
-<code>pieceTheme</code> is a function the first argument is the piece code. The<br>
-function should return an <code>&lt;img&gt;</code> source.</p>
+                <p>A function that renders DOM for a piece to a container element. This<br>
+function can render any elements and text, including SVG.</p>
+<p>The default value renders an SVG image of the piece, unless the<br>
+<code>pieceTheme</code> property is set, then it uses <code>pieceTheme</code> to get the URL for<br>
+an <code>&lt;img&gt;</code> element.</p>
 
               </td>
             </tr>
@@ -284,7 +321,7 @@ board. If <code>sparePieces</code> is set to <code>true</code>, <code>draggableP
                   
                     <li><code class="js plain">position</code>: Position
                   
-                    <li><code class="js plain">useAnimation</code>: boolean
+                    <li><code class="js plain">useAnimation</code>: 
                   
                   </ul>
                 

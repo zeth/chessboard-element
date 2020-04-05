@@ -12,15 +12,18 @@
  * http://polymer.github.io/PATENTS.txt
  */
 
+import path from 'path';
 import filesize from 'rollup-plugin-filesize';
 import {terser} from 'rollup-plugin-terser';
 import resolve from '@rollup/plugin-node-resolve';
 import minifyHTML from 'rollup-plugin-minify-html-literals';
+import license from 'rollup-plugin-license';
+
 
 export default {
   input: 'index.js',
   output: {
-    file: 'docs-src/js/chessboard-element.bundled.js',
+    file: 'bundled/chessboard-element.bundled.js',
     format: 'esm',
   },
   onwarn(warning) {
@@ -30,11 +33,44 @@ export default {
   },
   plugins: [
     resolve(),
-    minifyHTML(),
+    license({
+      sourcemap: true,
+      // cwd: '.', // Default is process.cwd()
+      // banner: {
+      //   content: {
+      //     file: path.join(__dirname, 'bundled', 'LICENSE'),
+      //     encoding: 'utf-8', // Default is utf-8
+      //   }, 
+      // },
+       thirdParty: {
+        output: {
+          file: path.join(__dirname, 'bundled', 'dependencies.txt'),
+        },
+      },
+    }),
+    minifyHTML({
+      // Don't minify SVG because it messes up the pieces
+      options: {
+        shouldMinify(template) {
+          const tag = template.tag && template.tag.toLowerCase();
+          return !!tag && (tag.includes('html'));
+        },
+      },
+    }),
     terser({
       warnings: true,
+      ecma: 2017,
+      compress: {
+        unsafe: true,
+      },
       mangle: {
         module: true,
+        properties: {
+          regex: /^__/,
+        },
+      },
+      output: {
+        comments: false,
       },
     }),
     filesize({
