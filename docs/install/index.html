@@ -83,8 +83,21 @@
 
         <section>
           <h2>Content Delivery Network</h2>
-          <p>You can use chessboard-element via the <a href="https://unpkg.com/">unpkg CDN</a> with the following links:
+          <p>
+            You can use chessboard-element via the
+            <a href="https://unpkg.com/">unpkg CDN</a> with the following links:
           <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>https://unpkg.com/chessboard-element?module<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+          <p>
+            unpkg.com with the <code>?module</code> parameter automatically rewrites import 
+            specificers to the correct paths, so everything will load in modern
+            browsers.
+          </p>
+          <p>
+            If you want to use the bundled build, you can, without the <code>?module</code>
+            parameter:
+            <pre class="language-html"><code class="language-html"><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;</span>script</span> <span class="token attr-name">type</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>module<span class="token punctuation">"</span></span> <span class="token attr-name">src</span><span class="token attr-value"><span class="token punctuation">=</span><span class="token punctuation">"</span>https://unpkg.com/chessboard-element/bundled/chessboard-element.bundled.js<span class="token punctuation">"</span></span><span class="token punctuation">></span></span><span class="token script"></span><span class="token tag"><span class="token tag"><span class="token punctuation">&lt;/</span>script</span><span class="token punctuation">></span></span></code></pre>
+            
+          </p>
         </section>
 
       </section>
