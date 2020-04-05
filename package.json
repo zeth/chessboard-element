@@ -4,7 +4,7 @@
   "description": "A chessboard web component",
   "homepage": "https://github.com/justinfagnani/chessboard-element",
   "license": "MIT",
-  "version": "1.0.0-pre.8",
+  "version": "1.0.0-pre.9",
   "repository": {
     "type": "git",
     "url": "git://github.com/justinfagnani/chessboard-element.git"
