@@ -10,6 +10,7 @@ import {css} from 'lit-element';
 export const styles = css`
   :host {
     display: block;
+    position: relative;
     --light-color: #f0d9b5;
     --dark-color: #b58863;
     --highlight-color: yellow;

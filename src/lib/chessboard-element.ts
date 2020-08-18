@@ -529,21 +529,23 @@ export class ChessBoardElement extends LitElement {
     const dragState = this._dragState;
     if (dragState !== undefined) {
       styles.display = 'block';
+      const rect = this.getBoundingClientRect();
+
       if (dragState.state === 'dragging') {
         const {x, y} = dragState;
         Object.assign(styles, {
-          top: `${y - this._squareSize / 2}px`,
-          left: `${x - this._squareSize / 2}px`,
+          top: `${y - rect.top - this._squareSize / 2}px`,
+          left: `${x - rect.left - this._squareSize / 2}px`,
         });
       } else if (dragState.state === 'snapback') {
         const {source} = dragState;
         const square = this._getSquareElement(source);
-        const rect = square.getBoundingClientRect();
+        const squareRect = square.getBoundingClientRect();
         Object.assign(styles, {
           transitionProperty: 'top, left',
           transitionDuration: `${speedToMS(this.snapbackSpeed)}ms`,
-          top: `${rect.top}px`,
-          left: `${rect.left}px`,
+          top: `${squareRect.top - rect.top}px`,
+          left: `${squareRect.left - rect.left}px`,
         });
       } else if (dragState.state === 'trash') {
         const {x, y} = dragState;
@@ -551,17 +553,17 @@ export class ChessBoardElement extends LitElement {
           transitionProperty: 'opacity',
           transitionDuration: `${speedToMS(this.trashSpeed)}ms`,
           opacity: '0',
-          top: `${y - this._squareSize / 2}px`,
-          left: `${x - this._squareSize / 2}px`,
+          top: `${y - rect.top - this._squareSize / 2}px`,
+          left: `${x - rect.left - this._squareSize / 2}px`,
         });
       } else if (dragState.state === 'snap') {
-        const targetSquare = this._getSquareElement(dragState.location);
-        const rect = targetSquare.getBoundingClientRect();
+        const square = this._getSquareElement(dragState.location);
+        const squareRect = square.getBoundingClientRect();
         Object.assign(styles, {
           transitionProperty: 'top, left',
           transitionDuration: `${speedToMS(this.snapSpeed)}ms`,
-          top: `${rect.top}px`,
-          left: `${rect.left}px`,
+          top: `${squareRect.top - rect.top}px`,
+          left: `${squareRect.left - rect.left}px`,
         });
       }
     }
@@ -769,8 +771,8 @@ export class ChessBoardElement extends LitElement {
     this._beginDraggingPiece(
       square,
       this._currentPosition[square]!,
-      e.pageX,
-      e.pageY
+      e.clientX,
+      e.clientY
     );
   }
 
@@ -783,7 +785,7 @@ export class ChessBoardElement extends LitElement {
     const sparePieceContainerEl = e.currentTarget as HTMLElement;
     const pieceEl = sparePieceContainerEl.querySelector('[part~=piece]');
     const piece = pieceEl!.getAttribute('piece')!;
-    this._beginDraggingPiece('spare', piece, e.pageX, e.pageY);
+    this._beginDraggingPiece('spare', piece, e.clientX, e.clientY);
   }
 
   private _mouseenterSquare(e: Event) {
@@ -859,7 +861,7 @@ export class ChessBoardElement extends LitElement {
 
   private _mousemoveWindow = (e: MouseEvent) => {
     if (this._dragState?.state === 'dragging') {
-      this._updateDraggedPiece(e.clientX, e.clientY, e.pageX, e.pageY);
+      this._updateDraggedPiece(e.clientX, e.clientY);
     }
   };
 
@@ -894,8 +896,8 @@ export class ChessBoardElement extends LitElement {
     this._beginDraggingPiece(
       square,
       this._currentPosition[square]!,
-      e.changedTouches[0].pageX,
-      e.changedTouches[0].pageY
+      e.changedTouches[0].clientX,
+      e.changedTouches[0].clientY
     );
   }
 
@@ -910,8 +912,8 @@ export class ChessBoardElement extends LitElement {
     this._beginDraggingPiece(
       'spare',
       piece,
-      e.changedTouches[0].pageX,
-      e.changedTouches[0].pageY
+      e.changedTouches[0].clientX,
+      e.changedTouches[0].clientY
     );
   }
 
@@ -924,12 +926,7 @@ export class ChessBoardElement extends LitElement {
     // prevent screen from scrolling
     e.preventDefault();
     const touch = e.changedTouches[0];
-    this._updateDraggedPiece(
-      touch.clientX,
-      touch.clientY,
-      touch.pageX,
-      touch.pageY
-    );
+    this._updateDraggedPiece(touch.clientX, touch.clientY);
   };
 
   private _touchendWindow = (e: TouchEvent) => {
@@ -1304,21 +1301,16 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate();
   }
 
-  private _updateDraggedPiece(
-    clientX: number,
-    clientY: number,
-    pageX: number,
-    pageY: number
-  ) {
+  private _updateDraggedPiece(x: number, y: number) {
     assertIsDragging(this._dragState);
 
     // put the dragged piece over the mouse cursor
-    this._dragState.x = pageX;
-    this._dragState.y = pageY;
+    this._dragState.x = x;
+    this._dragState.y = y;
 
     this.requestUpdate();
 
-    const location = this._isXYOnSquare(clientX, clientY);
+    const location = this._isXYOnSquare(x, y);
 
     // do nothing more if the location has not changed
     if (location === this._dragState.location) {
