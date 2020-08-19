@@ -24,7 +24,7 @@ function htmlList(v) {
 }
 
 function getMainClass(docs) {
-  return docs.modules[0].exports[0];
+  return docs.modules[0].exports.find((i) => i.name === 'ChessBoardElement');
 }
 
 function getProperties(docs) {

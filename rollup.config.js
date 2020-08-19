@@ -35,14 +35,7 @@ export default {
     resolve(),
     license({
       sourcemap: true,
-      // cwd: '.', // Default is process.cwd()
-      // banner: {
-      //   content: {
-      //     file: path.join(__dirname, 'bundled', 'LICENSE'),
-      //     encoding: 'utf-8', // Default is utf-8
-      //   }, 
-      // },
-       thirdParty: {
+      thirdParty: {
         output: {
           file: path.join(__dirname, 'bundled', 'dependencies.txt'),
         },

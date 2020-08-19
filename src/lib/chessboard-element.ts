@@ -281,7 +281,7 @@ export class ChessBoardElement extends LitElement {
    * animations, use the `setPosition` method.
    */
   @property({
-    converter: (value: string) => normalizePozition(value),
+    converter: (value: string | null) => normalizePozition(value),
   })
   get position(): PositionObject {
     return this._currentPosition;
@@ -363,6 +363,8 @@ export class ChessBoardElement extends LitElement {
    * The default value renders an SVG image of the piece, unless the
    * `pieceTheme` property is set, then it uses `pieceTheme` to get the URL for
    * an `<img>` element.
+   * 
+   * @default Function
    */
   @property({attribute: false})
   renderPiece?: RenderPieceFunction = (piece: string, container: Element) => {
@@ -375,12 +377,7 @@ export class ChessBoardElement extends LitElement {
     if (pieceImage === undefined) {
       renderWikipediaSVGPiece(piece, container);
     } else {
-      render(
-        html`
-          <img class="piece-image" src=${pieceImage} />
-        `,
-        container
-      );
+      render(html`<img class="piece-image" src=${pieceImage} />`, container);
     }
   };
 
@@ -611,14 +608,10 @@ export class ChessBoardElement extends LitElement {
             @touchstart=${this._touchstartSquare}
           >
             ${this.showNotation && row === 7
-              ? html`
-                  <div part="notation alpha">${file}</div>
-                `
+              ? html`<div part="notation alpha">${file}</div>`
               : nothing}
             ${this.showNotation && col === 0
-              ? html`
-                  <div part="notation numeric">${rank}</div>
-                `
+              ? html`<div part="notation numeric">${rank}</div>`
               : nothing}
             ${this._renderPiece(piece, pieceStyles, isDragSource)}
           </div>
@@ -629,9 +622,7 @@ export class ChessBoardElement extends LitElement {
       width: this._squareSize * 8 + 'px',
       height: this._squareSize * 8 + 'px',
     };
-    return html`
-      <div part="board" style=${styleMap(styles)}>${squares}</div>
-    `;
+    return html`<div part="board" style=${styleMap(styles)}>${squares}</div>`;
   }
 
   _renderPiece(
@@ -1077,7 +1068,9 @@ export class ChessBoardElement extends LitElement {
     window.addEventListener('touchmove', this._touchmoveWindow, {
       passive: false,
     });
-    window.addEventListener('touchend', this._touchendWindow, {passive: false});
+    window.addEventListener('touchend', this._touchendWindow, {
+      passive: false,
+    });
   }
 
   disconnectedCallback() {

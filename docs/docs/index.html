@@ -55,10 +55,24 @@
           </thead>
           <tbody>
             
+            <tr id="property:styles">
+              <td>
+                <p><a href="/chessboard-element/docs/#property:styles"><code class="js plain">styles</code></a></p>
+                <p class=property-type-7ae66>CSSResult</p>
+              </td>
+              <td class="center">
+                <p>&quot;styles&quot;</p>
+
+              </td>
+              <td>
+                
+              </td>
+            </tr>
+            
             <tr id="property:position">
               <td>
                 <p><a href="/chessboard-element/docs/#property:position"><code class="js plain">position</code></a></p>
-                <p class=property-type-7ae66>PositionObject</p>
+                <p class=property-type-7ae66>{ [square: string]: string | undefined; }</p>
               </td>
               <td class="center">
                 
@@ -80,7 +94,8 @@ animations, use the <code>setPosition</code> method.</p>
                 <p class=property-type-7ae66>boolean</p>
               </td>
               <td class="center">
-                false
+                <p>false</p>
+
               </td>
               <td>
                 <p>Whether to show the board notation.</p>
@@ -94,7 +109,7 @@ animations, use the <code>setPosition</code> method.</p>
                 <p class=property-type-7ae66>boolean</p>
               </td>
               <td class="center">
-                <p>true</p>
+                <p>&quot;true&quot;</p>
 
               </td>
               <td>
@@ -107,10 +122,10 @@ animations, use the <code>setPosition</code> method.</p>
             <tr id="property:orientation">
               <td>
                 <p><a href="/chessboard-element/docs/#property:orientation"><code class="js plain">orientation</code></a></p>
-                <p class=property-type-7ae66>SquareColor</p>
+                <p class=property-type-7ae66>"black" | "white"</p>
               </td>
               <td class="center">
-                <p>white</p>
+                <p>&quot;white&quot;</p>
 
               </td>
               <td>
@@ -126,7 +141,8 @@ animations, use the <code>setPosition</code> method.</p>
                 <p class=property-type-7ae66>boolean</p>
               </td>
               <td class="center">
-                false
+                <p>false</p>
+
               </td>
               <td>
                 <p>If <code>true</code>, pieces on the board are draggable to other squares.</p>
@@ -137,10 +153,10 @@ animations, use the <code>setPosition</code> method.</p>
             <tr id="property:dropOffBoard">
               <td>
                 <p><a href="/chessboard-element/docs/#property:dropOffBoard"><code class="js plain">dropOffBoard</code></a></p>
-                <p class=property-type-7ae66>OffBoardAction</p>
+                <p class=property-type-7ae66>"trash" | "snapback"</p>
               </td>
               <td class="center">
-                <p>snapback</p>
+                <p>&quot;snapback&quot;</p>
 
               </td>
               <td>
@@ -178,22 +194,7 @@ function should return an <code>&lt;img&gt;</code> source.</p>
                 <p class=property-type-7ae66>RenderPieceFunction | undefined</p>
               </td>
               <td class="center">
-                <p>(piece: string, container: Element) =&gt; {<br>
-let pieceImage: string | undefined = undefined;<br>
-if (isString(this.pieceTheme)) {<br>
-pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});<br>
-} else if (isFunction(this.pieceTheme)) {<br>
-pieceImage = this.pieceTheme(piece);<br>
-}<br>
-if (pieceImage === undefined) {<br>
-renderWikipediaSVGPiece(piece, container);<br>
-} else {<br>
-render(<br>
-html<code>&lt;img class=&quot;piece-image&quot; src=${pieceImage} /&gt;</code>,<br>
-container<br>
-);<br>
-}<br>
-}</p>
+                <p>&quot;Function&quot;</p>
 
               </td>
               <td>
@@ -209,10 +210,11 @@ an <code>&lt;img&gt;</code> element.</p>
             <tr id="property:moveSpeed">
               <td>
                 <p><a href="/chessboard-element/docs/#property:moveSpeed"><code class="js plain">moveSpeed</code></a></p>
-                <p class=property-type-7ae66>AnimationSpeed</p>
+                <p class=property-type-7ae66>number | "fast" | "slow"</p>
               </td>
               <td class="center">
-                200
+                <p>200</p>
+
               </td>
               <td>
                 <p>Animation speed for when pieces move between squares or from spare pieces<br>
@@ -224,10 +226,11 @@ to the board.</p>
             <tr id="property:snapbackSpeed">
               <td>
                 <p><a href="/chessboard-element/docs/#property:snapbackSpeed"><code class="js plain">snapbackSpeed</code></a></p>
-                <p class=property-type-7ae66>AnimationSpeed</p>
+                <p class=property-type-7ae66>number | "fast" | "slow"</p>
               </td>
               <td class="center">
-                60
+                <p>60</p>
+
               </td>
               <td>
                 <p>Animation speed for when pieces that were dropped outside the board return<br>
@@ -239,10 +242,11 @@ to their original square.</p>
             <tr id="property:snapSpeed">
               <td>
                 <p><a href="/chessboard-element/docs/#property:snapSpeed"><code class="js plain">snapSpeed</code></a></p>
-                <p class=property-type-7ae66>AnimationSpeed</p>
+                <p class=property-type-7ae66>number | "fast" | "slow"</p>
               </td>
               <td class="center">
-                30
+                <p>30</p>
+
               </td>
               <td>
                 <p>Animation speed for when pieces &quot;snap&quot; to a square when dropped.</p>
@@ -253,10 +257,11 @@ to their original square.</p>
             <tr id="property:trashSpeed">
               <td>
                 <p><a href="/chessboard-element/docs/#property:trashSpeed"><code class="js plain">trashSpeed</code></a></p>
-                <p class=property-type-7ae66>AnimationSpeed</p>
+                <p class=property-type-7ae66>number | "fast" | "slow"</p>
               </td>
               <td class="center">
-                100
+                <p>100</p>
+
               </td>
               <td>
                 <p>Animation speed for when pieces are removed.</p>
@@ -267,10 +272,11 @@ to their original square.</p>
             <tr id="property:appearSpeed">
               <td>
                 <p><a href="/chessboard-element/docs/#property:appearSpeed"><code class="js plain">appearSpeed</code></a></p>
-                <p class=property-type-7ae66>AnimationSpeed</p>
+                <p class=property-type-7ae66>number | "fast" | "slow"</p>
               </td>
               <td class="center">
-                200
+                <p>200</p>
+
               </td>
               <td>
                 <p>Animation speed for when pieces appear on a square.</p>
@@ -285,7 +291,8 @@ to their original square.</p>
                 <p class=property-type-7ae66>boolean</p>
               </td>
               <td class="center">
-                false
+                <p>false</p>
+
               </td>
               <td>
                 <p>If <code>true</code>, the board will have spare pieces that can be dropped onto the<br>
@@ -319,7 +326,7 @@ board. If <code>sparePieces</code> is set to <code>true</code>, <code>draggableP
                 
                   <ul>
                   
-                    <li><code class="js plain">position</code>: Position
+                    <li><code class="js plain">position</code>: string | PositionObject
                   
                     <li><code class="js plain">useAnimation</code>: 
                   
@@ -463,7 +470,7 @@ the board accordingly.</p>
             <tr id="event:mouseover-square">
               <td>
                 <p><a href="/chessboard-element/docs/#event:mouseover-square"><code class="js plain">mouseover-square</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when the cursor is over a square<br>
@@ -483,7 +490,7 @@ Use <code>drag-move</code> instead.</p>
             <tr id="event:mouseout-square">
               <td>
                 <p><a href="/chessboard-element/docs/#event:mouseout-square"><code class="js plain">mouseout-square</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when the cursor exits a square<br>
@@ -501,7 +508,7 @@ Use <code>drag-move</code> instead.</p>
             <tr id="event:snapback-end">
               <td>
                 <p><a href="/chessboard-element/docs/#event:snapback-end"><code class="js plain">snapback-end</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when the snapback animation is complete when<br>
@@ -520,7 +527,7 @@ The event's <code>detail</code> object has the following properties:</p>
             <tr id="event:snap-end">
               <td>
                 <p><a href="/chessboard-element/docs/#event:snap-end"><code class="js plain">snap-end</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when a piece completes a snap animation<br>
@@ -537,7 +544,7 @@ The event's <code>detail</code> object has the following properties:</p>
             <tr id="event:drag-start">
               <td>
                 <p><a href="/chessboard-element/docs/#event:drag-start"><code class="js plain">drag-start</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when a piece is picked up<br>
@@ -556,7 +563,7 @@ The event's <code>detail</code> object has the following properties:</p>
             <tr id="event:drag-move">
               <td>
                 <p><a href="/chessboard-element/docs/#event:drag-move"><code class="js plain">drag-move</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when a user-initiated drag moves<br>
@@ -576,7 +583,7 @@ The event's <code>detail</code> object has the following properties:</p>
             <tr id="event:drop">
               <td>
                 <p><a href="/chessboard-element/docs/#event:drop"><code class="js plain">drop</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when a user-initiated drag ends<br>
@@ -599,7 +606,7 @@ If <code>'trash'</code> is passed to <code>setAction</code>, the piece will be r
             <tr id="event:move-end">
               <td>
                 <p><a href="/chessboard-element/docs/#event:move-end"><code class="js plain">move-end</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when a piece move completes<br>
@@ -615,7 +622,7 @@ The event's <code>detail</code> object has the following properties:</p>
             <tr id="event:change">
               <td>
                 <p><a href="/chessboard-element/docs/#event:change"><code class="js plain">change</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>CustomEvent</p>
               </td>
               <td>
                 <p>Fired when the board position changes<br>
@@ -634,7 +641,7 @@ are: <code>clear()</code>, <code>move()</code>, <code>position()</code>, and <co
             <tr id="event:error">
               <td>
                 <p><a href="/chessboard-element/docs/#event:error"><code class="js plain">error</code></a></p>
-                <p class=property-type-7ae66></p>
+                <p class=property-type-7ae66>Event</p>
               </td>
               <td>
                 <p>Fired in the case of invalid attributes.</p>
@@ -667,7 +674,7 @@ are: <code>clear()</code>, <code>move()</code>, <code>position()</code>, and <co
 
               </td>
               <td>
-                <p>#f0d9b5</p>
+                <p>&quot;#f0d9b5&quot;</p>
 
               </td>
             </tr>
@@ -681,7 +688,7 @@ are: <code>clear()</code>, <code>move()</code>, <code>position()</code>, and <co
 
               </td>
               <td>
-                <p>#b58863</p>
+                <p>&quot;#b58863&quot;</p>
 
               </td>
             </tr>
@@ -695,7 +702,7 @@ are: <code>clear()</code>, <code>move()</code>, <code>position()</code>, and <co
 
               </td>
               <td>
-                <p>yellow</p>
+                <p>&quot;yellow&quot;</p>
 
               </td>
             </tr>

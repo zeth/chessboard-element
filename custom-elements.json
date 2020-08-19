@@ -79,6 +79,11 @@
       ],
       "properties": [
         {
+          "name": "styles",
+          "type": "CSSResult",
+          "default": "\"styles\""
+        },
+        {
           "name": "position",
           "attribute": "position",
           "description": "The current position of the board, as a `PositionObject`. This property may\nbe set externally, but only to valid `PositionObject`s. The value is copied\nbefore being applied to the board. Changes to the position object are not\nreflected in th rendering.\n\nTo set the position using FEN, or a keyword like `'start'`, or to use\nanimations, use the `setPosition` method.",
@@ -128,7 +133,7 @@
           "name": "renderPiece",
           "description": "A function that renders DOM for a piece to a container element. This\nfunction can render any elements and text, including SVG.\n\nThe default value renders an SVG image of the piece, unless the\n`pieceTheme` property is set, then it uses `pieceTheme` to get the URL for\nan `<img>` element.",
           "type": "RenderPieceFunction | undefined",
-          "default": "\"(piece: string, container: Element) => {\\n    let pieceImage: string | undefined = undefined;\\n    if (isString(this.pieceTheme)) {\\n      pieceImage = interpolateTemplate(this.pieceTheme, {piece: piece});\\n    } else if (isFunction(this.pieceTheme)) {\\n      pieceImage = this.pieceTheme(piece);\\n    }\\n    if (pieceImage === undefined) {\\n      renderWikipediaSVGPiece(piece, container);\\n    } else {\\n      render(\\n        html`\\n          <img class=\\\"piece-image\\\" src=${pieceImage} />\\n        `,\\n        container\\n      );\\n    }\\n  }\""
+          "default": "\"Function\""
         },
         {
           "name": "moveSpeed",

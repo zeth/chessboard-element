@@ -42,7 +42,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ---
 
 Name: lit-element
-Version: 2.2.1
+Version: 2.3.1
 License: BSD-3-Clause
 Private: false
 Description: A simple base class for creating fast, lightweight web components

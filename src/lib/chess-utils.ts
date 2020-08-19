@@ -261,7 +261,13 @@ if (RUN_ASSERTS) {
   console.assert(objToFen({a2: 'wP', b2: 'bP'}) === '8/8/8/8/8/8/Pp6/8');
 }
 
-export const normalizePozition = (position: Position) => {
+export const normalizePozition = (
+  position: Position | null
+): PositionObject => {
+  if (position == null) {
+    return {};
+  }
+
   // start position
   if (isString(position) && position.toLowerCase() === 'start') {
     position = deepCopy(START_POSITION);
@@ -271,7 +277,7 @@ export const normalizePozition = (position: Position) => {
   if (validFen(position)) {
     position = fenToObj(position) as PositionObject;
   }
-  return position;
+  return position as PositionObject;
 };
 
 // returns the distance between two squares
@@ -311,7 +317,7 @@ const createRadius = (square: string) => {
   }
 
   // sort by distance
-  squares.sort(function(a, b) {
+  squares.sort(function (a, b) {
     return a.distance - b.distance;
   });
 
