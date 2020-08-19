@@ -125,6 +125,9 @@ declare global {
   interface ImportMeta {
     url: string;
   }
+  interface HTMLElementTagNameMap {
+    'chess-board': ChessBoardElement;
+  }
 }
 
 // ---------------------------------------------------------------------------
