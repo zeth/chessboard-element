@@ -168,7 +168,8 @@
         <p>You can use a JavaScript object to represent a board position.</p>
         <p>The object property names must be algebraic squares (ie: e4, b2, c6, etc) and the values must be a valid piece codes (ie: wP, bK, wQ, etc).</p>
         <p>See an example of using an object to represent a position <a href="{{ '/examples/1003-position-object/' | url }}">here</a>.</p>
-        <p>Chessboard.js exposes the <a href="{{ '/examples/4000-onchange/' | url }}"><code class="js plain">Chessboard.objToFen</code></a> method to help convert between Position Objects and <a href="{{ '/docs/#fen_string' | url }}">FEN Strings</a>.</p>
+        <p>chessboard-element.js exports the <a href="{{ '/examples/4000-onchange/' | url }}"><code class="js plain">objToFen</code></a> function 
+          to help convert between Position Objects and <a href="{{ '/docs/#fen_string' | url }}">FEN Strings</a>.</p>
       </section>
 
       <section>
@@ -176,7 +177,8 @@
         <p>You can use <a href="http://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation">Forsyth-Edwards Notation (FEN)</a> to represent a board position.</p>
         <p>Note that FEN notation captures more information than chessboard-element requires, like who's move it is and whether or not castling is allowed. This information will be ignored; only the position information is used.</p>
         <p>See an example of using a FEN String to represent a position <a href="{{ '/examples/1002-fen/' | url }}">here</a> and <a href="{{ '/examples/2044-position-fen/' | url }}">here</a>.</p>
-        <p>Chessboard.js exposes the <code class="js plain">Chessboard.fenToObj</code> method to help convert a FEN String to a <a href="{{ '/docs/#position_object' | url }}">Position Object</a>.</p>
+        <p>chessboard-element.js exports the <code class="js plain">fenToObj</code> function to help convert a FEN String to a
+          <a href="{{ '/docs/#position_object' | url }}">Position Object</a>.</p>
       </section>
 
       </div>

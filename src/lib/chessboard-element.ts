@@ -31,6 +31,9 @@ import {
 } from './chess-utils.js';
 import {renderPiece as renderWikipediaSVGPiece} from './wikipedia-pieces-svg.js';
 
+export {fenToObj, objToFen} from './chess-utils.js';
+export {renderPiece as renderWikipediaSVGPiece} from './wikipedia-pieces-svg.js';
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
