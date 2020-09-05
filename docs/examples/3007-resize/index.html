@@ -137,7 +137,8 @@
         </nav>
         <div class="examples-body-9af4d" id="exampleBodyContainer">
           <h2>Resize</h2>          
-          <p><p>Use the <a href="/chessboard-element/docs/#methods:resize"><code class="js plain">resize</code></a> method to recalculate and redraw the board based on the size of it's parent element. See the full effect of this example in a <a href="/chessboard-element/examples/3007-resize/" target="_new">new window</a>.</p>
+          <p><p><code>&lt;chess-board&gt;</code> uses <a href="https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver">ResizeObserver </a> to automatically detect when it's resized and recalculate and redraw the board based on the size of its parent element.</p>
+<p>In case a browser does not support ResizeObserver, you can load a polyfill or manually call the <a href="/chessboard-element/docs/#methods:resize"><code class="js plain">resize</code></a> method.</p>
 </p>
           <div class="container-4e1ee">
             <!-- Begin Example HTML -->
@@ -149,16 +150,17 @@
 
           
           <h4>JavaScript</h4>
-          <pre class="language-js"><code class="language-js"><span class="token comment">// NOTE: click "View example in new window." to see the full effect of this example</span><br><span class="token keyword">const</span> board <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'chess-board'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br>window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'resize'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> board<span class="token punctuation">.</span><span class="token function">resize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span></code></pre>
+          <pre class="language-js"><code class="language-js"><span class="token keyword">const</span> board <span class="token operator">=</span> document<span class="token punctuation">.</span><span class="token function">querySelector</span><span class="token punctuation">(</span><span class="token string">'chess-board'</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><br><span class="token keyword">if</span> <span class="token punctuation">(</span>window<span class="token punctuation">.</span>ResizeObserver <span class="token operator">===</span> <span class="token keyword">undefined</span><span class="token punctuation">)</span> <span class="token punctuation">{</span><br>  window<span class="token punctuation">.</span><span class="token function">addEventListener</span><span class="token punctuation">(</span><span class="token string">'resize'</span><span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> board<span class="token punctuation">.</span><span class="token function">resize</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">;</span><br><span class="token punctuation">}</span></code></pre>
 
           <script type="module">
             import {objToFen} from '/chessboard-element/bundled/chessboard-element.bundled.js';
 
             // Begin Example JS
-            // NOTE: click "View example in new window." to see the full effect of this example
-const board = document.querySelector('chess-board');
+            const board = document.querySelector('chess-board');
 
-window.addEventListener('resize', () => board.resize());
+if (window.ResizeObserver === undefined) {
+  window.addEventListener('resize', () => board.resize());
+}
 
             // End Example JS
           </script>

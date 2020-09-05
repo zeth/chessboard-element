@@ -369,7 +369,7 @@ export class ChessBoardElement extends LitElement {
    * The default value renders an SVG image of the piece, unless the
    * `pieceTheme` property is set, then it uses `pieceTheme` to get the URL for
    * an `<img>` element.
-   * 
+   *
    * @default Function
    */
   @property({attribute: false})
@@ -1065,6 +1065,11 @@ export class ChessBoardElement extends LitElement {
   firstUpdated() {
     // We need to re-render to read the size of the container
     this.requestUpdate();
+    if (window.ResizeObserver !== undefined) {
+      new ResizeObserver(() => {
+        this.resize();
+      }).observe(this);
+    }
   }
 
   connectedCallback() {
