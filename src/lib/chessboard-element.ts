@@ -1159,7 +1159,7 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const transitionComplete = () => {
         this._draggedPieceElement.removeEventListener(
           'transitionend',
@@ -1207,7 +1207,7 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const transitionComplete = () => {
         this._draggedPieceElement.removeEventListener(
           'transitionend',
@@ -1243,7 +1243,7 @@ export class ChessBoardElement extends LitElement {
     this.requestUpdate();
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
       const transitionComplete = () => {
         this._draggedPieceElement.removeEventListener(
           'transitionend',

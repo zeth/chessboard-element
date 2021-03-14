@@ -7,11 +7,7 @@ export const renderPiece: RenderPieceFunction = (
   container: Element
 ) => {
   render(
-    html`
-      <svg class="piece-image" viewBox="0 0 45 45">
-        ${pieces[piece]}
-      </svg>
-    `,
+    html` <svg class="piece-image" viewBox="0 0 45 45">${pieces[piece]}</svg> `,
     container
   );
 };

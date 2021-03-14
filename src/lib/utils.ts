@@ -19,11 +19,11 @@ export const isInteger = (n: unknown): n is number => {
   return typeof n === 'number' && isFinite(n) && Math.floor(n) === n;
 };
 
-export const deepCopy = (thing: unknown) => {
+export const deepCopy = <T>(thing: T): T => {
   return JSON.parse(JSON.stringify(thing));
 };
 
-export const interpolateTemplate = (str: string, obj: object) => {
+export const interpolateTemplate = (str: string, obj: object): string => {
   for (const [key, value] of Object.entries(obj)) {
     const keyTemplateStr = '{' + key + '}';
     while (str.includes(keyTemplateStr)) {
