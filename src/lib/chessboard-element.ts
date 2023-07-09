@@ -506,8 +506,9 @@ export class ChessBoardElement extends LitElement {
       <div
         id="dragged-pieces"
         style=${styleMap({
-          width: `${this._squareSize}px`,
-          height: `${this._squareSize}px`,
+          width: `0px`,
+          height: `0px`,
+          overflow: `visible`,
         })}
       >
         ${this._renderDraggedPiece()}
