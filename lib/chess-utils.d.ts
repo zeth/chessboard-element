@@ -4,11 +4,11 @@
  * Released under the MIT license
  * https://github.com/justinfagnani/chessboard-element/blob/master/LICENSE.md
  */
-export declare type Piece = string;
-export declare type PositionObject = {
+export type Piece = string;
+export type PositionObject = {
     [square: string]: Piece | undefined;
 };
-export declare type Position = PositionObject | 'start' | string;
+export type Position = PositionObject | 'start' | string;
 export declare const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
 export declare const COLUMNS: string[];
 export declare const whitePieces: string[];
@@ -26,5 +26,5 @@ export declare const normalizePozition: (position: Position | null) => PositionO
 export declare const findClosestPiece: (position: PositionObject, piece: string, square: string) => string | false;
 export declare const calculatePositionFromMoves: (position: PositionObject, moves: {
     [from: string]: string;
-}) => any;
+}) => PositionObject;
 //# sourceMappingURL=chess-utils.d.ts.map

@@ -4,5 +4,5 @@
  * Released under the MIT license
  * https://github.com/justinfagnani/chessboard-element/blob/master/LICENSE.md
  */
-export declare const styles: import("lit-element").CSSResult;
+export declare const styles: import("lit").CSSResult;
 //# sourceMappingURL=chessboard-styles.d.ts.map

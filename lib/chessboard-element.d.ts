@@ -4,20 +4,20 @@
  * Released under the MIT license
  * https://github.com/justinfagnani/chessboard-element/blob/master/LICENSE.md
  */
-import { LitElement } from 'lit-element';
+import { LitElement, nothing } from 'lit';
 import { PositionObject, Position, Piece } from './chess-utils.js';
 export { fenToObj, objToFen } from './chess-utils.js';
 export { renderPiece as renderWikipediaSVGPiece } from './wikipedia-pieces-svg.js';
-export declare type AnimationSpeed = 'fast' | 'slow' | number;
-export declare type SquareColor = 'black' | 'white';
-export declare type Offset = {
+export type AnimationSpeed = 'fast' | 'slow' | number;
+export type SquareColor = 'black' | 'white';
+export type Offset = {
     top: number;
     left: number;
 };
-export declare type Location = string;
-export declare type Action = OffBoardAction | 'drop';
-export declare type OffBoardAction = 'trash' | 'snapback';
-export declare type Animation = {
+export type Location = string;
+export type Action = OffBoardAction | 'drop';
+export type OffBoardAction = 'trash' | 'snapback';
+export type Animation = {
     type: 'move';
     source: string;
     destination: string;
@@ -50,7 +50,7 @@ declare global {
         'chess-board': ChessBoardElement;
     }
 }
-export declare type RenderPieceFunction = (piece: Piece, container: Element) => void;
+export type RenderPieceFunction = (piece: Piece, container: HTMLElement) => void;
 /**
  * A custom element that renders an interactive chess board.
  *
@@ -151,7 +151,7 @@ export declare type RenderPieceFunction = (piece: Piece, container: Element) => 
  * @csspart numeric - The numeric (row) labels
  */
 export declare class ChessBoardElement extends LitElement {
-    static styles: import("lit-element").CSSResult;
+    static styles: import("lit").CSSResult;
     /**
      * The current position of the board, as a `PositionObject`. This property may
      * be set externally, but only to valid `PositionObject`s. The value is copied
@@ -257,11 +257,11 @@ export declare class ChessBoardElement extends LitElement {
     private get _squareSize();
     private _getSquareElement;
     private _getSparePieceElement;
-    render(): import("lit-element").TemplateResult;
+    render(): import("lit-html").TemplateResult<1>;
     private _renderSparePieces;
     private _renderDraggedPiece;
     private _renderBoard;
-    _renderPiece(piece: Piece | undefined, styles: Partial<CSSStyleDeclaration>, isDragSource?: boolean, id?: string, part?: string): {};
+    _renderPiece(piece: Piece | undefined, styles: Partial<CSSStyleDeclaration>, isDragSource?: boolean, id?: string, part?: string): import("lit-html").TemplateResult<1> | typeof nothing;
     private _getAnimationStyles;
     private _mousedownSquare;
     private _mousedownSparePiece;
@@ -269,10 +269,6 @@ export declare class ChessBoardElement extends LitElement {
     private _mouseleaveSquare;
     private _mousemoveWindow;
     private _mouseupWindow;
-    private _touchstartSquare;
-    private _touchstartSparePiece;
-    private _touchmoveWindow;
-    private _touchendWindow;
     /**
      * Sets the position of the board.
      *
@@ -307,7 +303,7 @@ export declare class ChessBoardElement extends LitElement {
      * Moves are strings the form of "e2-e4", "f6-d5", etc., Pass `false` as an
      * argument to disable animation.
      */
-    move(...args: Array<string | false>): any;
+    move(...args: Array<string | false>): PositionObject;
     /**
      * Flip the orientation.
      */

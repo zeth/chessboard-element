@@ -1,4 +1,4 @@
-import { TemplateResult } from 'lit-html';
+import { TemplateResult } from 'lit';
 import { RenderPieceFunction } from './chessboard-element.js';
 export declare const renderPiece: RenderPieceFunction;
 export declare const pieces: {
