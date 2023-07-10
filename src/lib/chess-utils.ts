@@ -15,8 +15,8 @@ const RUN_ASSERTS = true;
 export const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR';
 export const COLUMNS = 'abcdefgh'.split('');
 
-export const whitePieces = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP'];
-export const blackPieces = ['bK', 'bQ', 'bR', 'bB', 'bN', 'bP'];
+export const whitePieces = ['wK', 'wQ', 'wR', 'wB', 'wN', 'wP', 'wV'];
+export const blackPieces = ['bK', 'bQ', 'bR', 'bB', 'bN', 'bP', 'bV'];
 
 export const getSquareColor = (square: string) =>
   square.charCodeAt(0) % 2 ^ square.charCodeAt(1) % 2 ? 'white' : 'black';
@@ -48,7 +48,7 @@ if (RUN_ASSERTS) {
 }
 
 export const validPieceCode = (code: unknown): code is string => {
-  return isString(code) && code.search(/^[bw][KQRNBP]$/) !== -1;
+  return isString(code) && code.search(/^[bw][KQRNBPV]$/) !== -1;
 };
 
 if (RUN_ASSERTS) {
@@ -102,7 +102,7 @@ export const validFen = (fen: unknown): fen is string => {
 
   // check each section
   for (let i = 0; i < 8; i++) {
-    if (chunks[i].length !== 8 || chunks[i].search(/[^kqrnbpKQRNBP1]/) !== -1) {
+    if (chunks[i].length !== 8 || chunks[i].search(/[^kqrnbpvKQRNBPV1]/) !== -1) {
       return false;
     }
   }

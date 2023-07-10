@@ -9,7 +9,7 @@ export type PositionObject = {
     [square: string]: Piece | undefined;
 };
 export type Position = PositionObject | 'start' | string;
-export declare const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+export declare const START_FEN = "rnbqkbnr/pppppppp/8/8/8/VVVVVVVV/PPPPPPPP/RNBQKBNR";
 export declare const COLUMNS: string[];
 export declare const whitePieces: string[];
 export declare const blackPieces: string[];
