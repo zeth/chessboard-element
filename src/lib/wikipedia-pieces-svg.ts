@@ -273,4 +273,42 @@ export const pieces: {[p: string]: TemplateResult} = {
         style="fill:none; stroke:#000000; stroke-linejoin:miter;" />
     </g>
   `,
+  bV: svg`
+    <g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="translate(0,-285.09373)">
+    <g id="g4572" transform="matrix(0.28921369,0,0,0.28921369,-0.54713251,283.72613)">
+      <circle id="circle4537" r="2.5" cy="13.5" cx="22.5" style="fill:#000000;stroke:#000000;stroke-width:1.5;stroke-linejoin:round"/>
+      <circle id="circle4539" r="1.5" cy="13.5" cx="22.5" style="fill:none;stroke:#ffffff;stroke-width:1.5;stroke-linejoin:round"/>
+      <g id="g4543" style="fill:#000000;stroke:#000000;stroke-width:1.5;stroke-linejoin:round">
+        <!-- test -->
+        <path id="path4541" d="m 11.5,37 c 5.5,3.5 15.5,3.5 21,0 v -7 c 0,0 9,-4.5 6,-11 -5.5,-7 -26.5,-7 -32,0 -3,6.5 5,10.5 5,10.5 z" inkscape:connector-curvature="0"/>
+      </g>
+      <g id="g4553" style="fill:none;stroke:#ffffff;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round">
+        <!-- test -->
+        <path id="path4545" d="m 32,29.5 c 0,0 8.5,-4 6,-9.65 C 32.65,13 12.35,13 7,19.85 c -2.5,5.65 4.85,9 4.85,9" inkscape:connector-curvature="0"/>
+        <!-- talp -->
+        <path id="path4547" d="M 11.5,30 C 17,27 27,27 32.5,30" inkscape:connector-curvature="0"/>
+        <path id="path4549" d="m 11.5,33.5 c 5.5,-3 15.5,-3 21,0" inkscape:connector-curvature="0"/>
+        <path id="path4551" d="M 11.5,37 C 17,34 27,34 32.5,37" inkscape:connector-curvature="0"/>
+      </g>
+    </g>
+  </g>
+  `,
+  wV: svg`
+    <g inkscape:label="Layer 1" inkscape:groupmode="layer" id="layer1" transform="translate(0,-285.09373)">
+    <g id="g4499" transform="matrix(0.28598519,0,0,0.28598519,-0.47456997,283.80785)">
+      <g id="g4399" style="fill:#ffffff;stroke:#000000;stroke-width:1.5;stroke-linejoin:round">
+        <!-- bojt -->
+        <circle id="circle4395" r="2.5" cy="13.5" cx="22.5"/>
+        <!-- test -->
+        <path id="path4397" d="m 11.5,37 c 5.5,3.5 15.5,3.5 21,0 v -7 c 0,0 9,-4.5 6,-11 -5.5,-7 -26.5,-7 -32,0 -3,6.5 5,10.5 5,10.5 z" inkscape:connector-curvature="0"/>
+      </g>
+      <g id="g4407" style="fill:none;stroke:#000000;stroke-width:1.5;stroke-linecap:round">
+        <!-- talp -->
+        <path id="path4401" d="M 11.5,30 C 17,27 27,27 32.5,30" inkscape:connector-curvature="0"/>
+        <path id="path4403" d="m 11.5,33.5 c 5.5,-3 15.5,-3 21,0" inkscape:connector-curvature="0"/>
+        <path id="path4405" d="M 11.5,37 C 17,34 27,34 32.5,37" inkscape:connector-curvature="0"/>
+      </g>
+    </g>
+  </g>
+  `,
 };
